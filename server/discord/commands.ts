@@ -90,7 +90,7 @@ export const deleteChannelsCommand = {
           { name: 'WARNING', value: 'This action cannot be undone! Be careful when selecting channels to keep.' },
           { name: 'Instructions', value: 'Select multiple channels from the dropdown menu. Current channel will be kept by default.' }
         )
-        .setFooter({ text: 'Channel cleanup tool' });
+        .setFooter({ text: 'Created by KnarliX | <@1212719184870383621>' });
 
       // Create action buttons
       const selectButton = new ButtonBuilder()
@@ -120,6 +120,9 @@ export const deleteChannelsCommand = {
       if (interaction.channelId) {
         selectedChannelIds = [interaction.channelId];
       }
+      
+      // For pagination
+      let currentPage = 0;
 
       // Create collector for component interactions
       const collector = response.createMessageComponentCollector({
@@ -151,7 +154,7 @@ export const deleteChannelsCommand = {
               .setColor('#0099ff')
               .setTitle('Select channels to modify')
               .setDescription('Select channels from the dropdown menu that you want to **KEEP**. All other channels will be deleted.')
-              .setFooter({ text: 'You can select multiple channels from the dropdown' });
+              .setFooter({ text: 'Created by KnarliX | <@1212719184870383621>' });
             
             // Get channels to show in dropdown
             const channelsToShow = sortedChannels.filter(channel => channel !== null);
@@ -165,7 +168,7 @@ export const deleteChannelsCommand = {
             }
             
             // Create select menu options for channels
-            const selectOptions = channelsToShow.map(channel => {
+            const allSelectOptions = channelsToShow.map(channel => {
               // Get appropriate emoji for channel type
               const emoji = getChannelEmoji(channel!.type as any);
               
@@ -176,12 +179,17 @@ export const deleteChannelsCommand = {
                 .setEmoji(emoji);
             });
             
+            // Handle pagination for large servers
+            // Discord limits select menus to 25 options, so we need to paginate
+            // Take only the first 25 options for now
+            const selectOptions = allSelectOptions.slice(0, 25);
+            
             // Create a select menu
             const selectMenu = new StringSelectMenuBuilder()
               .setCustomId('select-channels')
-              .setPlaceholder('Select channels to keep')
+              .setPlaceholder(`Select channels to keep (1-25 of ${allSelectOptions.length})`)
               .setMinValues(0)
-              .setMaxValues(Math.min(25, selectOptions.length))
+              .setMaxValues(25)
               .addOptions(selectOptions);
             
             // Selected channels display
@@ -201,6 +209,26 @@ export const deleteChannelsCommand = {
                   : 'No channels selected yet. Select channels to keep from the dropdown menu.'
               );
             
+            // Create navigation buttons for pagination
+            let navigationRow = new ActionRowBuilder<ButtonBuilder>();
+            
+            // Only show navigation buttons if there are more than 25 channels
+            if (allSelectOptions.length > 25) {
+                navigationRow.addComponents(
+                    new ButtonBuilder()
+                        .setCustomId('prev-page')
+                        .setLabel('Previous Page')
+                        .setStyle(ButtonStyle.Secondary)
+                        .setEmoji('⬅️')
+                        .setDisabled(true), // Disabled on first page
+                    new ButtonBuilder()
+                        .setCustomId('next-page')
+                        .setLabel('Next Page')
+                        .setStyle(ButtonStyle.Secondary)
+                        .setEmoji('➡️')
+                );
+            }
+            
             // Create action buttons
             const buttonRow = new ActionRowBuilder<ButtonBuilder>()
               .addComponents(
@@ -219,10 +247,14 @@ export const deleteChannelsCommand = {
             const selectRow = new ActionRowBuilder<StringSelectMenuBuilder>()
               .addComponents(selectMenu);
             
-            // Update the message with channel selection UI
+            // Update the message with channel selection UI and add pagination if needed
+            const components = allSelectOptions.length > 25 
+                ? [selectRow, navigationRow, buttonRow] 
+                : [selectRow, buttonRow];
+                
             await i.update({
               embeds: [selectionEmbed, selectedChannelsEmbed],
-              components: [selectRow, buttonRow],
+              components: components,
             });
           }
           else if (i.customId === 'back-button') {
@@ -255,7 +287,7 @@ export const deleteChannelsCommand = {
                     .join('\n') + (channels.size - selectedChannelIds.length > 15 ? '\n• ... and more' : '')
                 }
               )
-              .setFooter({ text: 'This action cannot be undone!' });
+              .setFooter({ text: 'Created by KnarliX | <@1212719184870383621>' });
             
             // Create final confirmation buttons
             const finalConfirmButton = new ButtonBuilder()
@@ -284,7 +316,7 @@ export const deleteChannelsCommand = {
                   .setColor('#ffa500')
                   .setTitle('Processing')
                   .setDescription('Deleting channels... Please wait.')
-                  .setFooter({ text: 'Channel cleanup tool' })
+                  .setFooter({ text: 'Created by KnarliX | <@1212719184870383621>' })
               ],
               components: [],
             });
@@ -331,7 +363,7 @@ export const deleteChannelsCommand = {
               .setColor('#888888')
               .setTitle('Operation Cancelled')
               .setDescription('Channel deletion has been cancelled.')
-              .setFooter({ text: 'Channel cleanup tool' });
+              .setFooter({ text: 'Created by KnarliX | <@1212719184870383621>' });
             
             await i.update({
               embeds: [cancelEmbed],
@@ -340,6 +372,87 @@ export const deleteChannelsCommand = {
             
             // Stop collector
             collector.stop();
+          }
+          else if (i.customId === 'next-page' || i.customId === 'prev-page') {
+            // Handle pagination for channel selection
+            if (i.customId === 'next-page') {
+              currentPage++;
+            } else if (i.customId === 'prev-page') {
+              currentPage--;
+            }
+            
+            // Get channels to show in dropdown
+            const channelsToShow = sortedChannels.filter(channel => channel !== null);
+            
+            // Create all options
+            const allSelectOptions = channelsToShow.map(channel => {
+              const emoji = getChannelEmoji(channel!.type as any);
+              return new StringSelectMenuOptionBuilder()
+                .setLabel(channel!.name)
+                .setDescription(getChannelTypeName(channel!.type as any))
+                .setValue(channel!.id)
+                .setEmoji(emoji);
+            });
+            
+            // Calculate page bounds
+            const pageSize = 25;
+            const totalPages = Math.ceil(allSelectOptions.length / pageSize);
+            const startIdx = currentPage * pageSize;
+            const endIdx = Math.min(startIdx + pageSize, allSelectOptions.length);
+            
+            // Get options for current page
+            const pageOptions = allSelectOptions.slice(startIdx, endIdx);
+            
+            // Create select menu with current page options
+            const selectMenu = new StringSelectMenuBuilder()
+              .setCustomId('select-channels')
+              .setPlaceholder(`Select channels (${startIdx + 1}-${endIdx} of ${allSelectOptions.length})`)
+              .setMinValues(0)
+              .setMaxValues(pageOptions.length)
+              .addOptions(pageOptions);
+            
+            const selectRow = new ActionRowBuilder<StringSelectMenuBuilder>()
+              .addComponents(selectMenu);
+            
+            // Create navigation buttons
+            const navigationRow = new ActionRowBuilder<ButtonBuilder>()
+              .addComponents(
+                new ButtonBuilder()
+                  .setCustomId('prev-page')
+                  .setLabel('Previous Page')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('⬅️')
+                  .setDisabled(currentPage === 0),
+                new ButtonBuilder()
+                  .setCustomId('next-page')
+                  .setLabel('Next Page')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('➡️')
+                  .setDisabled(currentPage === totalPages - 1)
+              );
+            
+            // Create action buttons
+            const buttonRow = new ActionRowBuilder<ButtonBuilder>()
+              .addComponents(
+                new ButtonBuilder()
+                  .setCustomId('back-button')
+                  .setLabel('Back')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('🔙'),
+                new ButtonBuilder()
+                  .setCustomId('confirm-selection')
+                  .setLabel('Confirm Selection')
+                  .setStyle(ButtonStyle.Primary)
+              );
+            
+            // Get existing embeds
+            const currentEmbeds = i.message.embeds;
+            
+            // Update the UI with new page
+            await i.update({
+              embeds: currentEmbeds,
+              components: [selectRow, navigationRow, buttonRow],
+            });
           }
         } 
         else if (i.isStringSelectMenu()) {
