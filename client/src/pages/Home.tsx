@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { getBotStatus, startBot, getGuilds, deleteChannels } from "@/lib/discord";
+import { getBotStatus, getGuilds, deleteChannels } from "@/lib/discord";
 import { BotStatus, Guild, Channel } from "@/types/discord";
 import Sidebar from "@/components/Sidebar";
 import ChannelSelector from "@/components/ChannelSelector";
@@ -9,20 +9,8 @@ import SelectedChannelsList from "@/components/SelectedChannelsList";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import LogDisplay from "@/components/LogDisplay";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, AlertTriangle, RefreshCcw, Trash2 } from "lucide-react";
+import { AlertTriangle, RefreshCcw, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-
-// Define the token form schema
-const tokenFormSchema = z.object({
-  token: z.string().min(50, "Token must be at least 50 characters long"),
-});
-
-type TokenFormValues = z.infer<typeof tokenFormSchema>;
 
 export default function Home() {
   const { toast } = useToast();
@@ -48,35 +36,6 @@ export default function Home() {
   } = useQuery<Guild[]>({
     queryKey: ["/api/guilds"],
     enabled: botStatus?.status === "online",
-  });
-
-  // Mutation for starting the bot
-  const startBotMutation = useMutation({
-    mutationFn: (token: string) => startBot(token),
-    onSuccess: (data) => {
-      if (data.status === "online") {
-        toast({
-          title: "Bot Started",
-          description: "The bot has been successfully started.",
-        });
-        refetchStatus();
-        refetchGuilds();
-        setShowTokenForm(false);
-      } else {
-        toast({
-          title: "Bot Error",
-          description: data.error || "There was an error starting the bot.",
-          variant: "destructive",
-        });
-      }
-    },
-    onError: (error) => {
-      toast({
-        title: "Bot Error",
-        description: (error as Error).message || "There was an error starting the bot.",
-        variant: "destructive",
-      });
-    },
   });
 
   // Mutation for deleting channels
@@ -106,11 +65,6 @@ export default function Home() {
       });
     },
   });
-
-  // Handle token form submission
-  const onTokenSubmit = (values: TokenFormValues) => {
-    startBotMutation.mutate(values.token);
-  };
 
   // Handle delete channels
   const handleDeleteChannels = () => {
@@ -153,9 +107,6 @@ export default function Home() {
     setSelectedChannels([]);
   };
 
-  // Check if bot is offline
-  const isBotOffline = !isLoadingStatus && (!botStatus || botStatus.status === "offline");
-
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-discord-darker text-white">
       <Sidebar 
@@ -187,19 +138,11 @@ export default function Home() {
                   Bot Offline
                 </span>
               )}
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => setShowTokenForm(!showTokenForm)}
-              >
-                <AlertCircle className="h-5 w-5" />
-              </Button>
             </div>
           </div>
         </header>
 
         <main className="p-6">
-
           {/* Bot Description Card */}
           <Card className="mb-6 bg-discord-dark border-0">
             <CardHeader>
