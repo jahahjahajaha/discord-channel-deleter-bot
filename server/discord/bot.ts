@@ -41,8 +41,11 @@ export async function startBot(token: string): Promise<{ success: boolean; statu
         
         // Register slash commands
         try {
-          await registerCommands(client, token);
-          console.log('Slash commands registered successfully!');
+          // Fix: Check if client is not null before passing
+          if (client) {
+            await registerCommands(client, token);
+            console.log('Slash commands registered successfully!');
+          }
         } catch (error) {
           console.error('Failed to register slash commands:', error);
         }
