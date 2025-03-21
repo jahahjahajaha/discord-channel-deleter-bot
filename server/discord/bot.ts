@@ -167,47 +167,61 @@ export async function deleteChannels(
   await logAction(guildId, 'INFO', 'Starting channel deletion operation...');
 
   try {
-    // Fetch all channels in the guild
-    const channels = await guild.channels.fetch();
+    // Get all channels in one request
+    const allChannels = await guild.channels.fetch();
     
-    // Filter out the channels to keep
-    const channelsToDelete = channels.filter(channel => 
-      channel !== null && 
-      !keepChannelIds.includes(channel.id) &&
-      // Check if the channel can be deleted (text, voice, or category)
-      [
-        ChannelType.GuildText, 
-        ChannelType.GuildVoice, 
-        ChannelType.GuildCategory,
-        ChannelType.GuildForum,
-        ChannelType.GuildAnnouncement
-      ].includes(channel.type)
-    );
+    // Create a list of channels to delete
+    const channelsToDelete: Array<[string, any]> = [];
+    
+    // Find channels to delete
+    allChannels.forEach((channel, id) => {
+      if (!channel) return;
+      
+      // Only delete channels of the supported types
+      if (
+        !keepChannelIds.includes(id) &&
+        [
+          ChannelType.GuildText, 
+          ChannelType.GuildVoice, 
+          ChannelType.GuildCategory,
+          ChannelType.GuildForum,
+          ChannelType.GuildAnnouncement
+        ].includes(channel.type)
+      ) {
+        channelsToDelete.push([id, channel]);
+      }
+    });
 
     // Log the number of channels to delete
     await logAction(
       guildId, 
       'INFO', 
-      `Found ${channelsToDelete.size} channels to delete out of ${channels.size} total channels.`
+      `Found ${channelsToDelete.length} channels to delete out of ${allChannels.size} total channels.`
     );
 
     let deletedCount = 0;
     let failedCount = 0;
 
-    // Delete channels one by one
+    // Delete channels one by one (typecasting to work around type issues)
     for (const [id, channel] of channelsToDelete) {
       try {
-        await logAction(guildId, 'INFO', `Deleting channel: ${channel.name} (${id})...`);
+        // Type safety check for channel properties
+        const channelName = 'name' in channel ? channel.name : `Channel ${id}`;
+        
+        await logAction(guildId, 'INFO', `Deleting channel: ${channelName} (${id})...`);
         await channel.delete();
         await storage.deleteChannel(id); // Remove from storage
         deletedCount++;
-        await logAction(guildId, 'SUCCESS', `Deleted channel: ${channel.name} (${id})`);
+        await logAction(guildId, 'SUCCESS', `Deleted channel: ${channelName} (${id})`);
       } catch (error) {
         failedCount++;
+        // Type safety check for channel properties
+        const channelName = 'name' in channel ? channel.name : `Channel ${id}`;
+        
         await logAction(
           guildId, 
           'ERROR', 
-          `Failed to delete channel ${channel.name} (${id}): ${(error as Error).message}`
+          `Failed to delete channel ${channelName} (${id}): ${(error as Error).message}`
         );
       }
     }
@@ -255,7 +269,8 @@ async function syncGuildsToStorage(): Promise<void> {
     // Get all guilds from Discord API
     const discordGuilds = client.guilds.cache;
     
-    for (const [id, discordGuild] of discordGuilds) {
+    // Process each guild with forEach to avoid iteration type issues
+    discordGuilds.forEach(async (discordGuild, id) => {
       // Check if guild already exists in storage
       const existingGuild = await storage.getGuild(id);
       
@@ -286,7 +301,7 @@ async function syncGuildsToStorage(): Promise<void> {
           });
         }
       }
-    }
+    });
   } catch (error) {
     console.error('Error syncing guilds to storage:', error);
   }
@@ -295,14 +310,18 @@ async function syncGuildsToStorage(): Promise<void> {
 // Helper: Synchronize Discord channels to storage
 async function syncChannelsToStorage(guild: DiscordGuild): Promise<void> {
   try {
-    // Get all channels from Discord API for this guild
-    const discordChannels = await guild.channels.fetch();
-    
     // Track IDs of channels from Discord to detect deleted ones
     const discordChannelIds = new Set<string>();
     
-    for (const [id, discordChannel] of discordChannels) {
-      if (!discordChannel) continue;
+    console.log(`Starting to sync channels for guild ${guild.id} (${guild.name})`);
+    
+    // Get all channels in one request
+    const allChannels = await guild.channels.fetch();
+    console.log(`Fetched ${allChannels.size} channels total`);
+    
+    // Process all channels
+    allChannels.forEach(async (discordChannel, id) => {
+      if (!discordChannel) return;
       discordChannelIds.add(id);
       
       // Only save channels that we care about (text, voice, category)
@@ -313,7 +332,7 @@ async function syncChannelsToStorage(guild: DiscordGuild): Promise<void> {
         ChannelType.GuildForum,
         ChannelType.GuildAnnouncement
       ].includes(discordChannel.type)) {
-        continue;
+        return;
       }
       
       // Check if channel already exists in storage
@@ -347,15 +366,20 @@ async function syncChannelsToStorage(guild: DiscordGuild): Promise<void> {
           });
         }
       }
-    }
+    });
     
-    // Find and delete channels that no longer exist in Discord
-    const storedChannels = await storage.getChannelsByGuildId(guild.id);
-    for (const channel of storedChannels) {
-      if (!discordChannelIds.has(channel.id)) {
-        await storage.deleteChannel(channel.id);
+    // Wait a bit for all async operations to complete
+    setTimeout(async () => {
+      // Find and delete channels that no longer exist in Discord
+      const storedChannels = await storage.getChannelsByGuildId(guild.id);
+      for (const channel of storedChannels) {
+        if (!discordChannelIds.has(channel.id)) {
+          await storage.deleteChannel(channel.id);
+        }
       }
-    }
+      
+      console.log(`Finished syncing channels for guild ${guild.id} (${guild.name}). Total synced: ${discordChannelIds.size}`);
+    }, 1000);
   } catch (error) {
     console.error(`Error syncing channels for guild ${guild.id} to storage:`, error);
   }
