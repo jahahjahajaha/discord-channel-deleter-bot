@@ -89,8 +89,9 @@ export const deleteChannelsCommand = {
         .addFields(
           { name: 'WARNING', value: 'This action cannot be undone! Be careful when selecting channels to keep.' },
           { name: 'Instructions', value: 'Select multiple channels from the dropdown menu. Current channel will be kept by default.' }
-        )
-        .setFooter({ text: 'Created by KnarliX | <@1212719184870383621>' });
+        );
+      
+      addBrandedFooter(embed);
 
       // Create action buttons
       const selectButton = new ButtonBuilder()
@@ -506,7 +507,7 @@ export const deleteChannelsCommand = {
               .setColor('#888888')
               .setTitle('Operation Timed Out')
               .setDescription('Channel deletion has been cancelled due to inactivity.')
-              .setFooter({ text: 'Channel cleanup tool' });
+              .setFooter({ text: 'Created by KnarliX | <@1212719184870383621>' });
             
             await interaction.editReply({
               embeds: [timeoutEmbed],
@@ -560,6 +561,14 @@ function getChannelTypeName(type: number): string {
     default:
       return 'Unknown Channel Type';
   }
+}
+
+// Helper function to add branded footer to embeds
+function addBrandedFooter(embed: EmbedBuilder): EmbedBuilder {
+  return embed.setFooter({
+    text: 'Created by KnarliX | <@1212719184870383621>',
+    iconURL: 'https://cdn.discordapp.com/avatars/1212719184870383621/3a06e09c398cc389a24a55e7e9cf5d18.png'
+  });
 }
 
 // Register slash commands with Discord
