@@ -1,6 +1,7 @@
-import { Client, GatewayIntentBits, Partials, ChannelType, Guild as DiscordGuild, Channel as DiscordChannel, TextChannel, VoiceChannel, CategoryChannel } from "discord.js";
+import { Client, GatewayIntentBits, Partials, ChannelType, Guild as DiscordGuild, Channel as DiscordChannel, TextChannel, VoiceChannel, CategoryChannel, Events, Collection } from "discord.js";
 import { storage } from "../storage";
 import { InsertGuild, InsertChannel, InsertLog } from "@shared/schema";
+import { deleteChannelsCommand, registerCommands } from "./commands";
 
 let client: Client | null = null;
 let botStatus: 'offline' | 'online' | 'error' = 'offline';
@@ -37,6 +38,24 @@ export async function startBot(token: string): Promise<{ success: boolean; statu
         
         // Log bot startup
         console.log(`Logged in as ${client!.user!.tag}!`);
+        
+        // Register slash commands
+        try {
+          await registerCommands(client, token);
+          console.log('Slash commands registered successfully!');
+        } catch (error) {
+          console.error('Failed to register slash commands:', error);
+        }
+        
+        // Set up interaction handler
+        client!.on(Events.InteractionCreate, async (interaction) => {
+          if (!interaction.isCommand()) return;
+          
+          // Handle delete-channels command
+          if (interaction.commandName === 'delete-channels') {
+            await deleteChannelsCommand.execute(interaction, client!);
+          }
+        });
         
         // Cache guild data
         await syncGuildsToStorage();
