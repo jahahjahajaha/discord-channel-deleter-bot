@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { getBotStatus, getGuilds, deleteChannels } from "@/lib/discord";
@@ -17,6 +17,17 @@ export default function Home() {
   const [selectedGuildId, setSelectedGuildId] = useState<string | null>(null);
   const [selectedChannels, setSelectedChannels] = useState<Channel[]>([]);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  
+  // Custom function to update selected channels that also updates the per-guild storage
+  const updateSelectedChannels = (channels: Channel[]) => {
+    setSelectedChannels(channels);
+    if (selectedGuildId) {
+      setChannelSelectionByGuild(prev => ({
+        ...prev,
+        [selectedGuildId]: channels
+      }));
+    }
+  };
 
   // Query for bot status
   const { 
@@ -37,6 +48,19 @@ export default function Home() {
     queryKey: ["/api/guilds"],
     enabled: botStatus?.status === "online",
   });
+  
+  // Store previously selected channels by guildId to preserve selection across navigation
+  const [channelSelectionByGuild, setChannelSelectionByGuild] = useState<Record<string, Channel[]>>({});
+  
+  // Effect to load previously selected channels when switching guilds
+  useEffect(() => {
+    if (selectedGuildId && channelSelectionByGuild[selectedGuildId]) {
+      setSelectedChannels(channelSelectionByGuild[selectedGuildId]);
+    } else if (selectedGuildId) {
+      // If we don't have any selections for this guild yet, start with empty array
+      setSelectedChannels([]);
+    }
+  }, [selectedGuildId]);
 
   // Mutation for deleting channels
   const deleteChannelsMutation = useMutation({
@@ -104,7 +128,7 @@ export default function Home() {
 
   // Reset channel selection
   const handleResetSelection = () => {
-    setSelectedChannels([]);
+    updateSelectedChannels([]);
   };
 
   return (
@@ -214,13 +238,13 @@ export default function Home() {
                   <ChannelSelector 
                     guildId={selectedGuildId}
                     selectedChannels={selectedChannels}
-                    setSelectedChannels={setSelectedChannels}
+                    setSelectedChannels={updateSelectedChannels}
                   />
                   
                   <div className="mb-6">
                     <SelectedChannelsList 
                       selectedChannels={selectedChannels}
-                      setSelectedChannels={setSelectedChannels}
+                      setSelectedChannels={updateSelectedChannels}
                     />
                   </div>
                   
