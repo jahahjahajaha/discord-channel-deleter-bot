@@ -24,12 +24,12 @@ export const deleteChannelsCommand = {
   data: new SlashCommandBuilder()
     .setName('delete-channels')
     .setDescription('Delete all channels except for the ones you want to keep')
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
   async execute(interaction: CommandInteraction, client: Client) {
-    // Check if the user has permission to manage channels
-    if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageChannels)) {
+    // Check if the user has Administrator permission
+    if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
       await interaction.reply({
-        content: 'You do not have permission to manage channels.',
+        content: 'You do not have permission to use this command. Administrator permission is required.',
         ephemeral: true
       });
       return;
