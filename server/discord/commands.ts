@@ -85,17 +85,17 @@ export const deleteChannelsCommand = {
       const embed = new EmbedBuilder()
         .setColor('#0099ff')
         .setTitle('Channel Cleanup')
-        .setDescription('Select channels to **KEEP** by checking the boxes. All other channels will be deleted.')
+        .setDescription('Select channels to **KEEP** from the dropdown menu. All other channels will be deleted.')
         .addFields(
           { name: 'WARNING', value: 'This action cannot be undone! Be careful when selecting channels to keep.' },
-          { name: 'Instructions', value: 'Check the boxes next to the channels you want to keep. When you\'re done, click the Select button.' }
+          { name: 'Instructions', value: 'Select multiple channels from the dropdown menu. Current channel will be kept by default.' }
         )
         .setFooter({ text: 'Channel cleanup tool' });
 
       // Create action buttons
       const selectButton = new ButtonBuilder()
         .setCustomId('select-complete')
-        .setLabel('Select')
+        .setLabel('Continue')
         .setStyle(ButtonStyle.Primary);
       
       const cancelButton = new ButtonBuilder()
@@ -121,280 +121,287 @@ export const deleteChannelsCommand = {
         selectedChannelIds = [interaction.channelId];
       }
 
-      // Create collector for button interactions
-      const buttonCollector = response.createMessageComponentCollector({
-        componentType: ComponentType.Button,
+      // Create collector for component interactions
+      const collector = response.createMessageComponentCollector({
         time: 300000 // 5 minutes timeout
       });
 
-      // Handle button interactions
-      buttonCollector.on('collect', async (i: ButtonInteraction) => {
-        if (i.customId === 'cancel-delete') {
-          // Cancel the operation
-          const cancelEmbed = new EmbedBuilder()
-            .setColor('#888888')
-            .setTitle('Operation Cancelled')
-            .setDescription('Channel deletion has been cancelled.')
-            .setFooter({ text: 'Channel cleanup tool' });
-          
-          await i.update({
-            embeds: [cancelEmbed],
-            components: [],
-          });
-          
-          // Stop collectors
-          buttonCollector.stop();
-        } 
-        else if (i.customId === 'select-complete') {
-          // Show channel selection UI similar to the screenshot
-          const selectionEmbed = new EmbedBuilder()
-            .setColor('#0099ff')
-            .setTitle('Select channels to modify')
-            .setDescription('Check the boxes next to the channels you want to keep. All other channels will be deleted.')
-            .setFooter({ text: 'Click "Select" when done' });
-          
-          // Create action rows with buttons representing channels
-          const channelRows: ActionRowBuilder<ButtonBuilder>[] = [];
-          const channelsToShow = sortedChannels.slice(0, 25); // Discord UI limitation
-          
-          // Create rows of channel buttons
-          for (let i = 0; i < channelsToShow.length; i++) {
-            const channel = channelsToShow[i];
-            if (!channel) continue;
-            
-            // Check if this is the current channel
-            const isCurrentChannel = channel.id === interaction.channelId;
-            // Check if channel is already selected
-            const isSelected = selectedChannelIds.includes(channel.id);
-            
-            // Get appropriate emoji for channel type
-            const emoji = getChannelEmoji(channel.type as any);
-            
-            // Create button for this channel
-            const channelButton = new ButtonBuilder()
-              .setCustomId(`channel-${channel.id}`)
-              .setLabel(`${channel.name}`)
-              .setEmoji(isSelected || isCurrentChannel ? '✅' : emoji)
-              .setStyle(isSelected || isCurrentChannel ? ButtonStyle.Success : ButtonStyle.Secondary);
-            
-            // Add button to appropriate row
-            const rowIndex = Math.floor(i / 5);
-            if (!channelRows[rowIndex]) {
-              channelRows[rowIndex] = new ActionRowBuilder<ButtonBuilder>();
-            }
-            
-            channelRows[rowIndex].addComponents(channelButton);
-          }
-          
-          // Add confirmation button
-          const confirmRow = new ActionRowBuilder<ButtonBuilder>()
-            .addComponents(
-              new ButtonBuilder()
-                .setCustomId('back-button')
-                .setLabel('Back')
-                .setStyle(ButtonStyle.Secondary)
-                .setEmoji('🔙'),
-              new ButtonBuilder()
-                .setCustomId('confirm-selection')
-                .setLabel('Confirm')
-                .setStyle(ButtonStyle.Primary)
-            );
-          
-          // Add components to overall message
-          const allComponents = [...channelRows, confirmRow];
-          
-          // Update the message with channel selection UI
-          await i.update({
-            embeds: [selectionEmbed],
-            components: allComponents,
-          });
-        }
-        else if (i.customId === 'back-button') {
-          // Go back to main menu
-          await i.update({
-            embeds: [embed],
-            components: [buttonRow],
-          });
-        }
-        else if (i.customId === 'confirm-selection') {
-          // Show confirmation dialog
-          const confirmationEmbed = new EmbedBuilder()
-            .setColor('#ff0000')
-            .setTitle('⚠️ Final Confirmation Required ⚠️')
-            .setDescription(`Are you absolutely sure you want to delete all channels except the ${selectedChannelIds.length} selected ones?`)
-            .addFields(
-              { 
-                name: 'Channels to Keep', 
-                value: selectedChannelIds.map(id => {
-                  const channel = channels.get(id);
-                  return channel ? `• ${getChannelEmoji(channel.type as any)} ${channel.name}` : `• Unknown channel (${id})`;
-                }).join('\n')
-              },
-              {
-                name: 'Channels to Delete',
-                value: Array.from(channels.values())
-                  .filter(channel => channel && !selectedChannelIds.includes(channel.id))
-                  .slice(0, 15) // Show only first 15 to prevent message being too long
-                  .map(channel => `• ${getChannelEmoji(channel!.type as any)} ${channel!.name}`)
-                  .join('\n') + (channels.size - selectedChannelIds.length > 15 ? '\n• ... and more' : '')
-              }
-            )
-            .setFooter({ text: 'This action cannot be undone!' });
-          
-          // Create final confirmation buttons
-          const finalConfirmButton = new ButtonBuilder()
-            .setCustomId('final-confirm')
-            .setLabel('Yes, Delete Channels')
-            .setStyle(ButtonStyle.Danger);
-          
-          const finalCancelButton = new ButtonBuilder()
-            .setCustomId('final-cancel')
-            .setLabel('No, Cancel')
-            .setStyle(ButtonStyle.Secondary);
-          
-          const finalButtonRow = new ActionRowBuilder<ButtonBuilder>()
-            .addComponents(finalCancelButton, finalConfirmButton);
-          
-          await i.update({
-            embeds: [confirmationEmbed],
-            components: [finalButtonRow],
-          });
-        }
-        else if (i.customId.startsWith('channel-')) {
-          // Channel selection button clicked
-          const channelId = i.customId.replace('channel-', '');
-          
-          // Toggle selection (except for current channel which must be kept)
-          if (channelId !== interaction.channelId) {
-            if (selectedChannelIds.includes(channelId)) {
-              // Remove from selected
-              selectedChannelIds = selectedChannelIds.filter(id => id !== channelId);
-            } else {
-              // Add to selected
-              selectedChannelIds.push(channelId);
-            }
-          }
-          
-          // Reconstruct the UI with updated selections
-          // This is necessary because Discord doesn't allow updating individual buttons
-          
-          // Get the channel buttons from current components
-          const channelComponents = i.message.components.slice(0, -1); // Exclude the last confirm row
-          const confirmRow = i.message.components[i.message.components.length - 1];
-          
-          // Create updated button rows
-          const updatedRows: ActionRowBuilder<ButtonBuilder>[] = [];
-          
-          // Process each existing row
-          for (let rowIndex = 0; rowIndex < channelComponents.length; rowIndex++) {
-            const row = channelComponents[rowIndex];
-            const updatedRow = new ActionRowBuilder<ButtonBuilder>();
-            
-            // Update each button in the row
-            for (const button of row.components) {
-              if (button.type === ComponentType.Button) {
-                const buttonId = button.customId as string;
-                
-                if (buttonId.startsWith('channel-')) {
-                  const buttonChannelId = buttonId.replace('channel-', '');
-                  const channel = channels.get(buttonChannelId);
-                  
-                  if (channel) {
-                    // Check if selected or current channel
-                    const isCurrentChannel = buttonChannelId === interaction.channelId;
-                    const isSelected = selectedChannelIds.includes(buttonChannelId);
-                    
-                    // Get appropriate emoji
-                    const emoji = getChannelEmoji(channel.type as any);
-                    
-                    // Create updated button
-                    updatedRow.addComponents(
-                      new ButtonBuilder()
-                        .setCustomId(buttonId)
-                        .setLabel(channel.name)
-                        .setEmoji(isSelected || isCurrentChannel ? '✅' : emoji)
-                        .setStyle(isSelected || isCurrentChannel ? ButtonStyle.Success : ButtonStyle.Secondary)
-                    );
-                  }
-                }
-              }
-            }
-            
-            updatedRows.push(updatedRow);
-          }
-          
-          // Add the confirm row back
-          const updatedConfirmRow = ActionRowBuilder.from(confirmRow as any);
-          
-          // Update the message with the new button states
-          await i.update({
-            components: [...updatedRows, updatedConfirmRow] as any,
-          });
-        }
-        else if (i.customId === 'final-confirm') {
-          // Execute the deletion
-          await i.update({
-            embeds: [
-              new EmbedBuilder()
-                .setColor('#ffa500')
-                .setTitle('Processing')
-                .setDescription('Deleting channels... Please wait.')
-                .setFooter({ text: 'Channel cleanup tool' })
-            ],
-            components: [],
-          });
-          
-          try {
-            // Call the deleteChannels function
-            const result = await deleteChannels(guildId, selectedChannelIds);
-            
-            // Show results
-            const resultEmbed = new EmbedBuilder()
-              .setColor(result.success ? '#00ff00' : '#ff0000')
-              .setTitle(result.success ? 'Operation Completed' : 'Operation Failed')
-              .setDescription(
-                result.success
-                  ? `Successfully deleted ${result.deletedCount} channels. Failed to delete ${result.failedCount} channels.`
-                  : `Failed to delete channels: ${result.error}`
-              )
+      // Handle interactions
+      collector.on('collect', async (i) => {
+        if (i.isButton()) {
+          if (i.customId === 'cancel-delete') {
+            // Cancel the operation
+            const cancelEmbed = new EmbedBuilder()
+              .setColor('#888888')
+              .setTitle('Operation Cancelled')
+              .setDescription('Channel deletion has been cancelled.')
               .setFooter({ text: 'Channel cleanup tool' });
             
-            await i.editReply({
-              embeds: [resultEmbed],
+            await i.update({
+              embeds: [cancelEmbed],
+              components: [],
+            });
+            
+            // Stop collector
+            collector.stop();
+          } 
+          else if (i.customId === 'select-complete') {
+            // Show channel selection UI with dropdown menu
+            const selectionEmbed = new EmbedBuilder()
+              .setColor('#0099ff')
+              .setTitle('Select channels to modify')
+              .setDescription('Select channels from the dropdown menu that you want to **KEEP**. All other channels will be deleted.')
+              .setFooter({ text: 'You can select multiple channels from the dropdown' });
+            
+            // Get channels to show in dropdown
+            const channelsToShow = sortedChannels.filter(channel => channel !== null);
+            
+            // Always ensure current channel is marked for keeping
+            if (interaction.channelId && !selectedChannelIds.includes(interaction.channelId)) {
+              const currentChannel = channels.get(interaction.channelId);
+              if (currentChannel) {
+                selectedChannelIds.push(interaction.channelId);
+              }
+            }
+            
+            // Create select menu options for channels
+            const selectOptions = channelsToShow.map(channel => {
+              // Get appropriate emoji for channel type
+              const emoji = getChannelEmoji(channel!.type as any);
+              
+              return new StringSelectMenuOptionBuilder()
+                .setLabel(channel!.name)
+                .setDescription(getChannelTypeName(channel!.type as any))
+                .setValue(channel!.id)
+                .setEmoji(emoji);
+            });
+            
+            // Create a select menu
+            const selectMenu = new StringSelectMenuBuilder()
+              .setCustomId('select-channels')
+              .setPlaceholder('Select channels to keep')
+              .setMinValues(0)
+              .setMaxValues(Math.min(25, selectOptions.length))
+              .addOptions(selectOptions);
+            
+            // Selected channels display
+            const selectedChannelsEmbed = new EmbedBuilder()
+              .setColor('#00ff00')
+              .setTitle('Currently Selected Channels')
+              .setDescription(
+                selectedChannelIds.length > 0
+                  ? selectedChannelIds
+                      .map(id => {
+                        const channel = channels.get(id);
+                        return channel 
+                          ? `• ${getChannelEmoji(channel.type as any)} ${channel.name}` 
+                          : `• Unknown channel (${id})`;
+                      })
+                      .join('\n')
+                  : 'No channels selected yet. Select channels to keep from the dropdown menu.'
+              );
+            
+            // Create action buttons
+            const buttonRow = new ActionRowBuilder<ButtonBuilder>()
+              .addComponents(
+                new ButtonBuilder()
+                  .setCustomId('back-button')
+                  .setLabel('Back')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('🔙'),
+                new ButtonBuilder()
+                  .setCustomId('confirm-selection')
+                  .setLabel('Confirm Selection')
+                  .setStyle(ButtonStyle.Primary)
+              );
+            
+            // Create select row
+            const selectRow = new ActionRowBuilder<StringSelectMenuBuilder>()
+              .addComponents(selectMenu);
+            
+            // Update the message with channel selection UI
+            await i.update({
+              embeds: [selectionEmbed, selectedChannelsEmbed],
+              components: [selectRow, buttonRow],
+            });
+          }
+          else if (i.customId === 'back-button') {
+            // Go back to main menu
+            await i.update({
+              embeds: [embed],
+              components: [buttonRow],
+            });
+          }
+          else if (i.customId === 'confirm-selection') {
+            // Show confirmation dialog
+            const confirmationEmbed = new EmbedBuilder()
+              .setColor('#ff0000')
+              .setTitle('⚠️ Final Confirmation Required ⚠️')
+              .setDescription(`Are you absolutely sure you want to delete all channels except the ${selectedChannelIds.length} selected ones?`)
+              .addFields(
+                { 
+                  name: 'Channels to Keep', 
+                  value: selectedChannelIds.map(id => {
+                    const channel = channels.get(id);
+                    return channel ? `• ${getChannelEmoji(channel.type as any)} ${channel.name}` : `• Unknown channel (${id})`;
+                  }).join('\n')
+                },
+                {
+                  name: 'Channels to Delete',
+                  value: Array.from(channels.values())
+                    .filter(channel => channel && !selectedChannelIds.includes(channel.id))
+                    .slice(0, 15) // Show only first 15 to prevent message being too long
+                    .map(channel => `• ${getChannelEmoji(channel!.type as any)} ${channel!.name}`)
+                    .join('\n') + (channels.size - selectedChannelIds.length > 15 ? '\n• ... and more' : '')
+                }
+              )
+              .setFooter({ text: 'This action cannot be undone!' });
+            
+            // Create final confirmation buttons
+            const finalConfirmButton = new ButtonBuilder()
+              .setCustomId('final-confirm')
+              .setLabel('Yes, Delete Channels')
+              .setStyle(ButtonStyle.Danger);
+            
+            const finalCancelButton = new ButtonBuilder()
+              .setCustomId('final-cancel')
+              .setLabel('No, Cancel')
+              .setStyle(ButtonStyle.Secondary);
+            
+            const finalButtonRow = new ActionRowBuilder<ButtonBuilder>()
+              .addComponents(finalCancelButton, finalConfirmButton);
+            
+            await i.update({
+              embeds: [confirmationEmbed],
+              components: [finalButtonRow],
+            });
+          }
+          else if (i.customId === 'final-confirm') {
+            // Execute the deletion
+            await i.update({
+              embeds: [
+                new EmbedBuilder()
+                  .setColor('#ffa500')
+                  .setTitle('Processing')
+                  .setDescription('Deleting channels... Please wait.')
+                  .setFooter({ text: 'Channel cleanup tool' })
+              ],
+              components: [],
+            });
+            
+            try {
+              // Call the deleteChannels function
+              const result = await deleteChannels(guildId, selectedChannelIds);
+              
+              // Show results
+              const resultEmbed = new EmbedBuilder()
+                .setColor(result.success ? '#00ff00' : '#ff0000')
+                .setTitle(result.success ? 'Operation Completed' : 'Operation Failed')
+                .setDescription(
+                  result.success
+                    ? `Successfully deleted ${result.deletedCount} channels. Failed to delete ${result.failedCount} channels.`
+                    : `Failed to delete channels: ${result.error}`
+                )
+                .setFooter({ text: 'Channel cleanup tool' });
+              
+              await i.editReply({
+                embeds: [resultEmbed],
+                components: [],
+              });
+            } catch (error) {
+              // Handle errors
+              const errorEmbed = new EmbedBuilder()
+                .setColor('#ff0000')
+                .setTitle('Error')
+                .setDescription(`An error occurred: ${(error as Error).message}`)
+                .setFooter({ text: 'Channel cleanup tool' });
+              
+              await i.editReply({
+                embeds: [errorEmbed],
+                components: [],
+              });
+            }
+            
+            // Stop collector
+            collector.stop();
+          }
+          else if (i.customId === 'final-cancel') {
+            // Cancel the operation
+            const cancelEmbed = new EmbedBuilder()
+              .setColor('#888888')
+              .setTitle('Operation Cancelled')
+              .setDescription('Channel deletion has been cancelled.')
+              .setFooter({ text: 'Channel cleanup tool' });
+            
+            await i.update({
+              embeds: [cancelEmbed],
+              components: [],
+            });
+            
+            // Stop collector
+            collector.stop();
+          }
+        } 
+        else if (i.isStringSelectMenu()) {
+          if (i.customId === 'select-channels') {
+            // Update selected channels
+            const newSelectedChannels = i.values;
+            
+            // Always ensure current channel is included
+            if (interaction.channelId && !newSelectedChannels.includes(interaction.channelId)) {
+              newSelectedChannels.push(interaction.channelId);
+            }
+            
+            selectedChannelIds = newSelectedChannels;
+            
+            // Update the selected channels display
+            const updatedSelectedChannelsEmbed = new EmbedBuilder()
+              .setColor('#00ff00')
+              .setTitle('Currently Selected Channels')
+              .setDescription(
+                selectedChannelIds.length > 0
+                  ? selectedChannelIds
+                      .map(id => {
+                        const channel = channels.get(id);
+                        return channel 
+                          ? `• ${getChannelEmoji(channel.type as any)} ${channel.name}` 
+                          : `• Unknown channel (${id})`;
+                      })
+                      .join('\n')
+                  : 'No channels selected yet. Select channels to keep from the dropdown menu.'
+              );
+            
+            // Get the current embeds and components
+            const currentEmbeds = i.message.embeds;
+            currentEmbeds[1] = updatedSelectedChannelsEmbed.toJSON();
+            
+            // Update the message with new selected channels
+            await i.update({
+              embeds: currentEmbeds,
+              components: i.message.components,
+            });
+          }
+        }
+      });
+      
+      // Handle collector end (timeout)
+      collector.on('end', async (collected, reason) => {
+        if (reason === 'time') {
+          // Only update if the message is still showing the selection interface
+          try {
+            const timeoutEmbed = new EmbedBuilder()
+              .setColor('#888888')
+              .setTitle('Operation Timed Out')
+              .setDescription('Channel deletion has been cancelled due to inactivity.')
+              .setFooter({ text: 'Channel cleanup tool' });
+            
+            await interaction.editReply({
+              embeds: [timeoutEmbed],
               components: [],
             });
           } catch (error) {
-            // Handle errors
-            const errorEmbed = new EmbedBuilder()
-              .setColor('#ff0000')
-              .setTitle('Error')
-              .setDescription(`An error occurred: ${(error as Error).message}`)
-              .setFooter({ text: 'Channel cleanup tool' });
-            
-            await i.editReply({
-              embeds: [errorEmbed],
-              components: [],
-            });
+            console.error('Failed to update message after timeout:', error);
           }
-          
-          // Stop collectors
-          buttonCollector.stop();
-        }
-        else if (i.customId === 'final-cancel') {
-          // Cancel the operation
-          const cancelEmbed = new EmbedBuilder()
-            .setColor('#888888')
-            .setTitle('Operation Cancelled')
-            .setDescription('Channel deletion has been cancelled.')
-            .setFooter({ text: 'Channel cleanup tool' });
-          
-          await i.update({
-            embeds: [cancelEmbed],
-            components: [],
-          });
-          
-          // Stop collectors
-          buttonCollector.stop();
         }
       });
     } catch (error) {
