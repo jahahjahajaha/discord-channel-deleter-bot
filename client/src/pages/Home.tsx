@@ -252,19 +252,19 @@ export default function Home() {
           {/* Bot Description Card */}
           <Card className="mb-6 bg-discord-dark border-0">
             <CardHeader>
-              <CardTitle>डिस्कॉर्ड चैनल मैनेजर बॉट</CardTitle>
+              <CardTitle>Discord Channel Manager Bot</CardTitle>
               <CardDescription className="text-discord-light">
-                यह बॉट आपको अपने डिस्कॉर्ड सर्वर चैनलों को कुशलतापूर्वक प्रबंधित करने में मदद करता है, जिससे आप चुन सकते हैं कि किन चैनलों को रखना है और बाकी को हटाना है।
+                This bot helps you manage your Discord server channels efficiently by allowing you to select which channels to keep and delete the rest.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="bg-gray-800 p-3 rounded-md mb-4">
                 <div className="flex items-center text-sm text-gray-400 mb-2">
                   <code className="mr-2">{'</>'}</code>
-                  <span>कमांड उपयोग</span>
+                  <span>Command Usage</span>
                 </div>
                 <code className="text-sm font-mono block text-white bg-gray-900 p-3 rounded overflow-x-auto">
-                  /delete-channels [keep: रखने वाले चैनलों की सूची]
+                  /delete-channels [keep: list of channels to keep]
                 </code>
               </div>
               
@@ -277,8 +277,8 @@ export default function Home() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-medium">चैनल चुनें</h3>
-                    <p className="text-discord-light text-sm">चुनें कौन से चैनल रखने हैं</p>
+                    <h3 className="font-medium">Select Channels</h3>
+                    <p className="text-discord-light text-sm">Choose which channels to keep</p>
                   </div>
                 </div>
                 <div className="bg-gray-800 p-3 rounded-md flex items-start">
@@ -286,8 +286,8 @@ export default function Home() {
                     <Trash2 className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="font-medium">बड़े पैमाने पर हटाएं</h3>
-                    <p className="text-discord-light text-sm">एक साथ कई चैनलों को हटाएं</p>
+                    <h3 className="font-medium">Delete Bulk</h3>
+                    <p className="text-discord-light text-sm">Remove multiple channels at once</p>
                   </div>
                 </div>
                 <div className="bg-gray-800 p-3 rounded-md flex items-start">
@@ -298,8 +298,8 @@ export default function Home() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-medium">अधिकृति</h3>
-                    <p className="text-discord-light text-sm">केवल व्यवस्थापक ही इस कमांड का उपयोग कर सकते हैं</p>
+                    <h3 className="font-medium">Authorization</h3>
+                    <p className="text-discord-light text-sm">Only admins can use this command</p>
                   </div>
                 </div>
               </div>
@@ -309,9 +309,9 @@ export default function Home() {
           {/* Channel Management Card */}
           <Card className="mb-6 bg-discord-dark border-0">
             <CardHeader>
-              <CardTitle>चैनल चयन</CardTitle>
+              <CardTitle>Channel Selection</CardTitle>
               <CardDescription className="text-discord-light">
-                वे चैनल चुनें जिन्हें आप रखना चाहते हैं। अन्य सभी चैनल हटा दिए जाएंगे।
+                Select channels you want to keep. All other channels will be deleted.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -337,7 +337,7 @@ export default function Home() {
                       className="bg-gray-700 border-0 text-white hover:bg-gray-600"
                     >
                       <RefreshCcw className="mr-2 h-4 w-4" />
-                      चयन रीसेट करें
+                      Reset Selection
                     </Button>
                     <Button 
                       variant="destructive"
@@ -347,8 +347,8 @@ export default function Home() {
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
                       {deleteChannelsMutation.isPending 
-                        ? "हटाया जा रहा है..." 
-                        : "अन्य चैनल हटाएं"}
+                        ? "Deleting..." 
+                        : "Delete Other Channels"}
                     </Button>
                   </div>
                 </>
@@ -356,9 +356,9 @@ export default function Home() {
                 <div className="flex items-center justify-center p-6 text-center">
                   <div>
                     <AlertTriangle className="mx-auto h-12 w-12 text-yellow-500 mb-4" />
-                    <h3 className="text-lg font-medium mb-2">कोई सर्वर नहीं चुना गया</h3>
+                    <h3 className="text-lg font-medium mb-2">No Server Selected</h3>
                     <p className="text-discord-light mb-4">
-                      कृपया अपने चैनलों को प्रबंधित करने के लिए साइडबार से एक सर्वर चुनें।
+                      Please select a server from the sidebar to manage its channels.
                     </p>
                   </div>
                 </div>
@@ -369,7 +369,7 @@ export default function Home() {
           {/* Log Card */}
           <Card className="bg-discord-dark border-0">
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>ऑपरेशन लॉग</CardTitle>
+              <CardTitle>Operation Log</CardTitle>
               <Button 
                 variant="ghost" 
                 size="icon"
@@ -383,7 +383,7 @@ export default function Home() {
                 <LogDisplay guildId={selectedGuildId} />
               ) : (
                 <div className="bg-gray-800 rounded-md p-3 h-40 flex items-center justify-center font-mono text-sm">
-                  <p className="text-discord-light">लॉग देखने के लिए एक सर्वर चुनें</p>
+                  <p className="text-discord-light">Select a server to view logs</p>
                 </div>
               )}
             </CardContent>
