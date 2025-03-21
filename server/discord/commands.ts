@@ -17,7 +17,7 @@ import {
   GuildChannel
 } from 'discord.js';
 import { ChannelType } from 'discord-api-types/v10';
-import { deleteChannels } from './bot';
+import { deleteChannels, getKnarlixAvatarURL } from './bot';
 
 // Define the delete-channels slash command
 export const deleteChannelsCommand = {
@@ -567,7 +567,7 @@ function getChannelTypeName(type: number): string {
 function addBrandedFooter(embed: EmbedBuilder): EmbedBuilder {
   return embed.setFooter({
     text: 'Created by KnarliX | <@1212719184870383621>',
-    iconURL: 'https://cdn.discordapp.com/avatars/1212719184870383621/3a06e09c398cc389a24a55e7e9cf5d18.png'
+    iconURL: getKnarlixAvatarURL()
   });
 }
 

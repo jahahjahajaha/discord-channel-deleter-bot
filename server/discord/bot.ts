@@ -6,6 +6,7 @@ import { deleteChannelsCommand, registerCommands } from "./commands";
 let client: Client | null = null;
 let botStatus: 'offline' | 'online' | 'error' = 'offline';
 let botError: string | null = null;
+let userAvatarURL: string | null = null; // Store KnarliX's avatar URL
 
 // Initialize the Discord bot with the provided token
 export async function startBot(token: string): Promise<{ success: boolean; status: string; error?: string }> {
@@ -38,6 +39,18 @@ export async function startBot(token: string): Promise<{ success: boolean; statu
         
         // Log bot startup
         console.log(`Logged in as ${client!.user!.tag}!`);
+        
+        // Fetch KnarliX's profile info to get avatar URL
+        try {
+          const knarlixId = '1212719184870383621';
+          const user = await client!.users.fetch(knarlixId);
+          userAvatarURL = user.displayAvatarURL({ size: 128 });
+          console.log(`Fetched KnarliX's avatar URL: ${userAvatarURL}`);
+        } catch (error) {
+          console.error('Failed to fetch KnarliX avatar:', error);
+          // Fallback URL in case we can't fetch it
+          userAvatarURL = 'https://cdn.discordapp.com/embed/avatars/0.png';
+        }
         
         // Register slash commands
         try {
@@ -112,6 +125,11 @@ export function getBotStatus(): { status: string; error?: string } {
     status: botStatus,
     ...(botError ? { error: botError } : {})
   };
+}
+
+// Get KnarliX's avatar URL for branded embeds
+export function getKnarlixAvatarURL(): string {
+  return userAvatarURL || 'https://cdn.discordapp.com/embed/avatars/0.png';
 }
 
 // Fetch and return all guilds the bot is a member of
