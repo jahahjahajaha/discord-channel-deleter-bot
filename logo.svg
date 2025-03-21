@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="256" cy="256" r="240" fill="#5865F2"/>
+  
+  <!-- Channel Cleanup Icon -->
+  <g transform="translate(100, 100) scale(0.6)">
+    <!-- Channels (Lines) -->
+    <rect x="40" y="80" width="320" height="40" rx="8" fill="#FFFFFF" opacity="0.9"/>
+    <rect x="40" y="140" width="320" height="40" rx="8" fill="#FFFFFF" opacity="0.9"/>
+    <rect x="40" y="200" width="320" height="40" rx="8" fill="#FFFFFF" opacity="0.5"/>
+    <rect x="40" y="260" width="320" height="40" rx="8" fill="#FFFFFF" opacity="0.5"/>
+    <rect x="40" y="320" width="320" height="40" rx="8" fill="#FFFFFF" opacity="0.5"/>
+    
+    <!-- Checkmarks on Selected Channels -->
+    <circle cx="400" cy="100" r="20" fill="#43B581"/>
+    <path d="M390 100 L398 108 L410 92" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <circle cx="400" cy="160" r="20" fill="#43B581"/>
+    <path d="M390 160 L398 168 L410 152" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Broom/Cleanup Symbol -->
+    <path d="M460 240 L380 320 L355 295 L435 215 L460 240Z" fill="#FF4554"/>
+    <path d="M355 295 L335 385 L380 320 L355 295Z" fill="#FFCC4D"/>
+    <rect x="430" y="185" width="60" height="20" rx="5" transform="rotate(45)" fill="#FFCC4D"/>
+  </g>
+  
+  <!-- Text "KnarliX" at the bottom -->
+  <path d="M150 390 H170 V410 H150 V390 Z" fill="#FFFFFF"/>
+  <path d="M180 390 V410 H190 L210 390 V410 H220 V390 H210 L190 410 V390 Z" fill="#FFFFFF"/>
+  <path d="M230 390 H250 V398 H240 V400 H250 V410 H230 V402 H240 V400 H230 Z" fill="#FFFFFF"/>
+  <path d="M260 390 V410 H280 V390 H260 Z M270 398 V402 H275 V398 Z" fill="#FFFFFF"/>
+  <path d="M290 390 V410 H310 V390 H290 Z" fill="#FFFFFF"/>
+  <path d="M320 390 V410 H330 L350 390 V410 H360 V390 H350 L330 410 V390 Z" fill="#FFFFFF"/>
+</svg>

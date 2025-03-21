@@ -14,7 +14,8 @@ import {
   EmbedBuilder,
   ComponentType,
   ButtonInteraction,
-  GuildChannel
+  GuildChannel,
+  Collection
 } from 'discord.js';
 import { ChannelType } from 'discord-api-types/v10';
 import { deleteChannels, getKnarlixAvatarURL } from './bot';
@@ -122,8 +123,9 @@ export const deleteChannelsCommand = {
         selectedChannelIds = [interaction.channelId];
       }
       
-      // For pagination
+      // For channel type filtering and pagination
       let currentPage = 0;
+      let currentFilter = 'all'; // Default to showing all channel types
 
       // Create collector for component interactions
       const collector = response.createMessageComponentCollector({
@@ -246,14 +248,60 @@ export const deleteChannelsCommand = {
                   .setStyle(ButtonStyle.Primary)
               );
             
+            // Create type filter menu
+            const typeFilterMenu = new StringSelectMenuBuilder()
+              .setCustomId('filter-type')
+              .setPlaceholder('Filter by channel type')
+              .addOptions([
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('All Channels')
+                  .setValue('all')
+                  .setDescription('Show all channel types')
+                  .setDefault(currentFilter === 'all'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Text Channels')
+                  .setValue('text')
+                  .setEmoji('📝')
+                  .setDescription('Show only text channels')
+                  .setDefault(currentFilter === 'text'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Voice Channels')
+                  .setValue('voice')
+                  .setEmoji('🔊')
+                  .setDescription('Show only voice channels')
+                  .setDefault(currentFilter === 'voice'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Categories')
+                  .setValue('category')
+                  .setEmoji('📁')
+                  .setDescription('Show only categories')
+                  .setDefault(currentFilter === 'category'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Announcement Channels')
+                  .setValue('announcement')
+                  .setEmoji('📢')
+                  .setDescription('Show only announcement channels')
+                  .setDefault(currentFilter === 'announcement'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Forum Channels')
+                  .setValue('forum')
+                  .setEmoji('📊')
+                  .setDescription('Show only forum channels')
+                  .setDefault(currentFilter === 'forum')
+              ]);
+              
+            // Create type filter row
+            const typeFilterRow = new ActionRowBuilder<StringSelectMenuBuilder>()
+              .addComponents(typeFilterMenu);
+            
             // Create select row
             const selectRow = new ActionRowBuilder<StringSelectMenuBuilder>()
               .addComponents(selectMenu);
             
             // Update the message with channel selection UI and add pagination if needed
             const components = allSelectOptions.length > 25 
-                ? [selectRow, navigationRow, buttonRow] 
-                : [selectRow, buttonRow];
+                ? [typeFilterRow, selectRow, navigationRow, buttonRow] 
+                : [typeFilterRow, selectRow, buttonRow];
                 
             await i.update({
               embeds: [selectionEmbed, selectedChannelsEmbed],
@@ -495,15 +543,28 @@ export const deleteChannelsCommand = {
         } 
         else if (i.isStringSelectMenu()) {
           if (i.customId === 'select-channels') {
-            // Update selected channels
-            const newSelectedChannels = i.values;
+            // Get current values without losing previously selected channels
+            const currentValues = i.values;
             
-            // Always ensure current channel is included
-            if (interaction.channelId && !newSelectedChannels.includes(interaction.channelId)) {
-              newSelectedChannels.push(interaction.channelId);
+            // We need to merge with existing selections to make it accumulative
+            // First, get already selected channels
+            const existingSelections = [...selectedChannelIds];
+            
+            // For each currently selected channel
+            for (const channelId of currentValues) {
+              // If it's not already in our selections, add it
+              if (!existingSelections.includes(channelId)) {
+                existingSelections.push(channelId);
+              }
             }
             
-            selectedChannelIds = newSelectedChannels;
+            // Always ensure current channel is included
+            if (interaction.channelId && !existingSelections.includes(interaction.channelId)) {
+              existingSelections.push(interaction.channelId);
+            }
+            
+            // Update our selections with merged list
+            selectedChannelIds = existingSelections;
             
             // Update the selected channels display
             const updatedSelectedChannelsEmbed = new EmbedBuilder()
@@ -542,6 +603,185 @@ export const deleteChannelsCommand = {
             await i.update({
               embeds: updatedEmbeds,
               components: i.message.components,
+            });
+          }
+          else if (i.customId === 'filter-type') {
+            // Handle channel type filtering
+            currentFilter = i.values[0];
+            currentPage = 0; // Reset to first page when changing filter
+            
+            // Get the filtered channels
+            const channelsToShow = sortedChannels.filter(channel => {
+              if (currentFilter === 'all') return true;
+              if (currentFilter === 'text' && channel!.type === ChannelType.GuildText) return true;
+              if (currentFilter === 'voice' && channel!.type === ChannelType.GuildVoice) return true;
+              if (currentFilter === 'category' && channel!.type === ChannelType.GuildCategory) return true;
+              if (currentFilter === 'announcement' && channel!.type === ChannelType.GuildAnnouncement) return true;
+              if (currentFilter === 'forum' && channel!.type === ChannelType.GuildForum) return true;
+              return false;
+            });
+            
+            // Create options for the filtered channels
+            const filteredOptions = channelsToShow.map(channel => {
+              const emoji = getChannelEmoji(channel!.type as any);
+              return new StringSelectMenuOptionBuilder()
+                .setLabel(channel!.name)
+                .setDescription(getChannelTypeName(channel!.type as any))
+                .setValue(channel!.id)
+                .setEmoji(emoji);
+            });
+            
+            // Calculate page bounds
+            const pageSize = 25;
+            const totalPages = Math.ceil(filteredOptions.length / pageSize);
+            const startIdx = currentPage * pageSize;
+            const endIdx = Math.min(startIdx + pageSize, filteredOptions.length);
+            
+            // Get options for current page
+            const pageOptions = filteredOptions.slice(startIdx, endIdx);
+            
+            // Create type filter menu
+            const typeFilterMenu = new StringSelectMenuBuilder()
+              .setCustomId('filter-type')
+              .setPlaceholder('Filter by channel type')
+              .addOptions([
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('All Channels')
+                  .setValue('all')
+                  .setDescription('Show all channel types')
+                  .setDefault(currentFilter === 'all'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Text Channels')
+                  .setValue('text')
+                  .setEmoji('📝')
+                  .setDescription('Show only text channels')
+                  .setDefault(currentFilter === 'text'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Voice Channels')
+                  .setValue('voice')
+                  .setEmoji('🔊')
+                  .setDescription('Show only voice channels')
+                  .setDefault(currentFilter === 'voice'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Categories')
+                  .setValue('category')
+                  .setEmoji('📁')
+                  .setDescription('Show only categories')
+                  .setDefault(currentFilter === 'category'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Announcement Channels')
+                  .setValue('announcement')
+                  .setEmoji('📢')
+                  .setDescription('Show only announcement channels')
+                  .setDefault(currentFilter === 'announcement'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Forum Channels')
+                  .setValue('forum')
+                  .setEmoji('📊')
+                  .setDescription('Show only forum channels')
+                  .setDefault(currentFilter === 'forum')
+              ]);
+              
+            // Create channel selection menu
+            const selectMenu = new StringSelectMenuBuilder()
+              .setCustomId('select-channels')
+              .setPlaceholder(`Select channels (${startIdx + 1}-${endIdx} of ${filteredOptions.length})`)
+              .setMinValues(0)
+              .setMaxValues(pageOptions.length);
+              
+            // Add options to the select menu
+            if (pageOptions.length > 0) {
+              selectMenu.addOptions(pageOptions);
+            } else {
+              // If no channels of this type, show a placeholder and disable the menu
+              selectMenu
+                .addOptions([
+                  new StringSelectMenuOptionBuilder()
+                    .setLabel('No channels of this type')
+                    .setValue('none')
+                    .setDescription('Try a different filter')
+                ])
+                .setDisabled(true); // Disable the entire menu not just the option
+            }
+              
+            const typeFilterRow = new ActionRowBuilder<StringSelectMenuBuilder>()
+              .addComponents(typeFilterMenu);
+              
+            const selectRow = new ActionRowBuilder<StringSelectMenuBuilder>()
+              .addComponents(selectMenu);
+              
+            // Create navigation buttons
+            const navigationRow = new ActionRowBuilder<ButtonBuilder>()
+              .addComponents(
+                new ButtonBuilder()
+                  .setCustomId('prev-page')
+                  .setLabel('Previous Page')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('⬅️')
+                  .setDisabled(currentPage === 0),
+                new ButtonBuilder()
+                  .setCustomId('next-page')
+                  .setLabel('Next Page')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('➡️')
+                  .setDisabled(currentPage === totalPages - 1 || totalPages === 0)
+              );
+              
+            // Create action buttons
+            const buttonRow = new ActionRowBuilder<ButtonBuilder>()
+              .addComponents(
+                new ButtonBuilder()
+                  .setCustomId('back-button')
+                  .setLabel('Back')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('🔙'),
+                new ButtonBuilder()
+                  .setCustomId('confirm-selection')
+                  .setLabel('Confirm Selection')
+                  .setStyle(ButtonStyle.Primary)
+              );
+              
+            // Update selected channels display
+            const selectedChannelsEmbed = new EmbedBuilder()
+              .setColor('#00ff00')
+              .setTitle('Currently Selected Channels')
+              .setDescription(
+                selectedChannelIds.length > 0
+                  ? selectedChannelIds
+                      .map(id => {
+                        const channel = channels.get(id);
+                        return channel 
+                          ? `• ${getChannelEmoji(channel.type as any)} ${channel.name}` 
+                          : `• Unknown channel (${id})`;
+                      })
+                      .join('\n')
+                  : 'No channels selected yet. Select channels to keep from the dropdown menu.'
+              );
+              
+            // Get the main embed from existing message
+            const mainEmbed = i.message.embeds[0];
+              
+            // Create embeds 
+            const updatedEmbeds = [
+              new EmbedBuilder()
+                .setColor(mainEmbed.color || '#0099ff')
+                .setTitle(mainEmbed.title || 'Select channels to modify')
+                .setDescription(`Filter: ${getFilterName(currentFilter)}. Select channels you want to **KEEP**. All other channels will be deleted.`),
+              selectedChannelsEmbed
+            ];
+            
+            // Add branded footer
+            addBrandedFooter(updatedEmbeds[0]);
+            
+            // Only show navigation if we have multiple pages
+            const components = filteredOptions.length > pageSize
+              ? [typeFilterRow, selectRow, navigationRow, buttonRow]
+              : [typeFilterRow, selectRow, buttonRow];
+            
+            // Update the UI with filtered channels
+            await i.update({
+              embeds: updatedEmbeds,
+              components: components,
             });
           }
         }
@@ -610,6 +850,19 @@ function getChannelTypeName(type: number): string {
       return 'Announcement Channel';
     default:
       return 'Unknown Channel Type';
+  }
+}
+
+// Helper function to get readable filter name
+function getFilterName(filter: string): string {
+  switch (filter) {
+    case 'all': return 'All Channels';
+    case 'text': return 'Text Channels';
+    case 'voice': return 'Voice Channels';
+    case 'category': return 'Categories';
+    case 'announcement': return 'Announcement Channels';
+    case 'forum': return 'Forum Channels';
+    default: return 'All Channels';
   }
 }
 
