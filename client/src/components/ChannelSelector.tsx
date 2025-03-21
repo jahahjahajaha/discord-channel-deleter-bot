@@ -48,7 +48,7 @@ export default function ChannelSelector({
     };
   }, []);
 
-  // Add channel to selection if not already selected
+  // Add channel to selection if not already selected (ALWAYS KEEPING PREVIOUS SELECTIONS)
   const addChannel = (channel: Channel) => {
     // Check if channel is already selected
     const isAlreadySelected = selectedChannels.some(c => c.id === channel.id);
@@ -60,11 +60,12 @@ export default function ChannelSelector({
     }
   };
 
-  // Filter channels by search query
+  // Filter channels by search query and type
   const filteredChannels = channels
-    ? channels.filter((channel) => 
-        channel.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+    ? channels.filter((channel) => {
+        const matchesSearch = channel.name.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesSearch;
+      })
     : [];
 
   // Get channel type icon

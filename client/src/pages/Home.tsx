@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { getBotStatus, getGuilds, deleteChannels } from "@/lib/discord";
-import { BotStatus, Guild, Channel } from "@/types/discord";
+import { BotStatus, Guild, Channel, ChannelType } from "@/types/discord";
 import Sidebar from "@/components/Sidebar";
 import ChannelSelector from "@/components/ChannelSelector";
 import SelectedChannelsList from "@/components/SelectedChannelsList";
@@ -165,63 +165,6 @@ export default function Home() {
         </header>
 
         <main className="p-6">
-          {/* Bot Description Card */}
-          <Card className="mb-6 bg-discord-dark border-0">
-            <CardHeader>
-              <CardTitle>Discord Channel Manager Bot</CardTitle>
-              <CardDescription className="text-discord-light">
-                This bot helps you manage your Discord server channels efficiently by allowing you to select which channels to keep and delete the rest.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-gray-800 p-3 rounded-md mb-4">
-                <div className="flex items-center text-sm text-gray-400 mb-2">
-                  <code className="mr-2">{'</>'}</code>
-                  <span>Command Usage</span>
-                </div>
-                <code className="text-sm font-mono block text-white bg-gray-900 p-3 rounded overflow-x-auto">
-                  /delete-channels [keep: list of channels to keep]
-                </code>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-gray-800 p-3 rounded-md flex items-start">
-                  <div className="mt-1 mr-3 text-discord-blurple">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M7 11L11 15L17 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Select Channels</h3>
-                    <p className="text-discord-light text-sm">Choose which channels to keep</p>
-                  </div>
-                </div>
-                <div className="bg-gray-800 p-3 rounded-md flex items-start">
-                  <div className="mt-1 mr-3 text-discord-red">
-                    <Trash2 className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Delete Bulk</h3>
-                    <p className="text-discord-light text-sm">Remove multiple channels at once</p>
-                  </div>
-                </div>
-                <div className="bg-gray-800 p-3 rounded-md flex items-start">
-                  <div className="mt-1 mr-3 text-discord-green">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2"/>
-                      <path d="M7 12.5L10 15.5L17 8.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Authorization</h3>
-                    <p className="text-discord-light text-sm">Only admins can use this command</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Channel Management Card */}
           <Card className="mb-6 bg-discord-dark border-0">
             <CardHeader>
@@ -233,11 +176,45 @@ export default function Home() {
             <CardContent>
               {selectedGuildId ? (
                 <>
-                  <ChannelSelector 
-                    guildId={selectedGuildId}
-                    selectedChannels={selectedChannels}
-                    setSelectedChannels={updateSelectedChannels}
-                  />
+                  <div className="mb-4 grid grid-cols-1 gap-2">
+                    <h4 className="text-sm font-semibold text-white">Category Channels</h4>
+                    <ChannelSelector 
+                      guildId={selectedGuildId}
+                      selectedChannels={selectedChannels.filter(c => c.type === ChannelType.GuildCategory)}
+                      setSelectedChannels={(channels) => {
+                        const otherChannels = selectedChannels.filter(c => c.type !== ChannelType.GuildCategory);
+                        updateSelectedChannels([...otherChannels, ...channels]);
+                      }}
+                    />
+                    
+                    <h4 className="text-sm font-semibold text-white mt-4">Text Channels</h4>
+                    <ChannelSelector 
+                      guildId={selectedGuildId}
+                      selectedChannels={selectedChannels.filter(c => 
+                        c.type === ChannelType.GuildText || 
+                        c.type === ChannelType.GuildAnnouncement || 
+                        c.type === ChannelType.GuildForum
+                      )}
+                      setSelectedChannels={(channels) => {
+                        const otherChannels = selectedChannels.filter(c => 
+                          c.type !== ChannelType.GuildText && 
+                          c.type !== ChannelType.GuildAnnouncement && 
+                          c.type !== ChannelType.GuildForum
+                        );
+                        updateSelectedChannels([...otherChannels, ...channels]);
+                      }}
+                    />
+                    
+                    <h4 className="text-sm font-semibold text-white mt-4">Voice Channels</h4>
+                    <ChannelSelector 
+                      guildId={selectedGuildId}
+                      selectedChannels={selectedChannels.filter(c => c.type === ChannelType.GuildVoice)}
+                      setSelectedChannels={(channels) => {
+                        const otherChannels = selectedChannels.filter(c => c.type !== ChannelType.GuildVoice);
+                        updateSelectedChannels([...otherChannels, ...channels]);
+                      }}
+                    />
+                  </div>
                   
                   <div className="mb-6">
                     <SelectedChannelsList 
