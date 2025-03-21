@@ -107,21 +107,6 @@ export const deleteChannelsCommand = {
       const buttonRow = new ActionRowBuilder<ButtonBuilder>()
         .addComponents(cancelButton, selectButton);
 
-      // Create message components for channel selection
-      // We need to split channels into multiple action rows (max 5 per message, max 5 components per row)
-      const maxRowsPerMessage = 5;
-      const maxComponentsPerRow = 5;
-      
-      // We'll create a "page" system for channel selection since Discord has limitations
-      const channelPages: {
-        embed: EmbedBuilder,
-        components: ActionRowBuilder<ButtonBuilder>[]
-      }[] = [];
-      
-      // Calculate how many channels we can show per page
-      const channelsPerPage = maxRowsPerMessage * maxComponentsPerRow;
-      const totalPages = Math.ceil(sortedChannels.length / channelsPerPage);
-
       // Send the initial embed with a message about channel selection
       const response = await interaction.reply({
         embeds: [embed],
@@ -139,12 +124,6 @@ export const deleteChannelsCommand = {
       // Create collector for button interactions
       const buttonCollector = response.createMessageComponentCollector({
         componentType: ComponentType.Button,
-        time: 300000 // 5 minutes timeout
-      });
-
-      // Create collector for string select interactions
-      const stringSelectCollector = response.createMessageComponentCollector({ 
-        componentType: ComponentType.StringSelect,
         time: 300000 // 5 minutes timeout
       });
 
@@ -349,11 +328,9 @@ export const deleteChannelsCommand = {
           
           // Update the message with the new button states
           await i.update({
-            components: [...updatedRows, updatedConfirmRow],
+            components: [...updatedRows, updatedConfirmRow] as any,
           });
         }
-
-
         else if (i.customId === 'final-confirm') {
           // Execute the deletion
           await i.update({
@@ -401,7 +378,6 @@ export const deleteChannelsCommand = {
           }
           
           // Stop collectors
-          collector.stop();
           buttonCollector.stop();
         }
         else if (i.customId === 'final-cancel') {
@@ -418,25 +394,7 @@ export const deleteChannelsCommand = {
           });
           
           // Stop collectors
-          collector.stop();
           buttonCollector.stop();
-        }
-      });
-
-      // Handle collector end
-      stringSelectCollector.on('end', async (collected, reason) => {
-        if (reason === 'time') {
-          // Timed out
-          const timeoutEmbed = new EmbedBuilder()
-            .setColor('#888888')
-            .setTitle('Operation Timed Out')
-            .setDescription('Channel deletion has been cancelled due to inactivity.')
-            .setFooter({ text: 'Channel cleanup tool' });
-          
-          await interaction.editReply({
-            embeds: [timeoutEmbed],
-            components: [],
-          });
         }
       });
     } catch (error) {
