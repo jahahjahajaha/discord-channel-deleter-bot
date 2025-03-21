@@ -339,8 +339,9 @@ export const deleteChannelsCommand = {
                   result.success
                     ? `Successfully deleted ${result.deletedCount} channels. Failed to delete ${result.failedCount} channels.`
                     : `Failed to delete channels: ${result.error}`
-                )
-                .setFooter({ text: 'Channel cleanup tool' });
+                );
+                
+              addBrandedFooter(resultEmbed);
               
               await i.editReply({
                 embeds: [resultEmbed],
@@ -351,8 +352,9 @@ export const deleteChannelsCommand = {
               const errorEmbed = new EmbedBuilder()
                 .setColor('#ff0000')
                 .setTitle('Error')
-                .setDescription(`An error occurred: ${(error as Error).message}`)
-                .setFooter({ text: 'Channel cleanup tool' });
+                .setDescription(`An error occurred: ${(error as Error).message}`);
+                
+              addBrandedFooter(errorEmbed);
               
               await i.editReply({
                 embeds: [errorEmbed],
@@ -368,8 +370,9 @@ export const deleteChannelsCommand = {
             const cancelEmbed = new EmbedBuilder()
               .setColor('#888888')
               .setTitle('Operation Cancelled')
-              .setDescription('Channel deletion has been cancelled.')
-              .setFooter({ text: 'Created by KnarliX | <@1212719184870383621>' });
+              .setDescription('Channel deletion has been cancelled.');
+              
+            addBrandedFooter(cancelEmbed);
             
             await i.update({
               embeds: [cancelEmbed],
@@ -451,12 +454,41 @@ export const deleteChannelsCommand = {
                   .setStyle(ButtonStyle.Primary)
               );
             
-            // Get existing embeds
-            const currentEmbeds = i.message.embeds;
+            // Create updated selected channels embed to maintain selection across pages
+            const updatedSelectedChannelsEmbed = new EmbedBuilder()
+              .setColor('#00ff00')
+              .setTitle('Currently Selected Channels')
+              .setDescription(
+                selectedChannelIds.length > 0
+                  ? selectedChannelIds
+                      .map(id => {
+                        const channel = channels.get(id);
+                        return channel 
+                          ? `• ${getChannelEmoji(channel.type as any)} ${channel.name}` 
+                          : `• Unknown channel (${id})`;
+                      })
+                      .join('\n')
+                  : 'No channels selected yet. Select channels to keep from the dropdown menu.'
+              );
+              
+            // Get the main embed from existing message
+            const mainEmbed = i.message.embeds[0];
+              
+            // Create new embeds array with both embeds
+            const updatedEmbeds = [
+              new EmbedBuilder()
+                .setColor(mainEmbed.color || '#0099ff')
+                .setTitle(mainEmbed.title || 'Select channels to modify')
+                .setDescription(mainEmbed.description || 'Select channels from the dropdown menu that you want to KEEP. All other channels will be deleted.'),
+              updatedSelectedChannelsEmbed
+            ];
             
-            // Update the UI with new page
+            // Add branded footer
+            addBrandedFooter(updatedEmbeds[0]);
+            
+            // Update the UI with new page and maintain selection display
             await i.update({
-              embeds: currentEmbeds,
+              embeds: updatedEmbeds,
               components: [selectRow, navigationRow, buttonRow],
             });
           }
@@ -491,12 +523,24 @@ export const deleteChannelsCommand = {
               );
             
             // Get the current embeds and components
-            const currentEmbeds = i.message.embeds;
-            currentEmbeds[1] = updatedSelectedChannelsEmbed.toJSON();
+            // Instead of modifying embeds directly, recreate them
+            const mainEmbed = i.message.embeds[0];
+            
+            // Create a new message with updated embeds
+            const updatedEmbeds = [
+              new EmbedBuilder()
+                .setColor(mainEmbed.color || '#0099ff')
+                .setTitle(mainEmbed.title || 'Select channels to modify')
+                .setDescription(mainEmbed.description || 'Select channels from the dropdown menu that you want to KEEP. All other channels will be deleted.'),
+              updatedSelectedChannelsEmbed
+            ];
+            
+            // Add footers to embeds
+            addBrandedFooter(updatedEmbeds[0]);
             
             // Update the message with new selected channels
             await i.update({
-              embeds: currentEmbeds,
+              embeds: updatedEmbeds,
               components: i.message.components,
             });
           }
@@ -511,8 +555,9 @@ export const deleteChannelsCommand = {
             const timeoutEmbed = new EmbedBuilder()
               .setColor('#888888')
               .setTitle('Operation Timed Out')
-              .setDescription('Channel deletion has been cancelled due to inactivity.')
-              .setFooter({ text: 'Created by KnarliX | <@1212719184870383621>' });
+              .setDescription('Channel deletion has been cancelled due to inactivity.');
+              
+            addBrandedFooter(timeoutEmbed);
             
             await interaction.editReply({
               embeds: [timeoutEmbed],
