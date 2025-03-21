@@ -1,9 +1,9 @@
-# <img src="logo.svg" width="30" alt="Bot Icon"> KnarliX Channel Manager
+# <img src="logo.svg" width="30" alt="Bot Icon"> Discord Channel Deleter Bot
 
 <div align="center">
-  <img src="logo.svg" width="200" alt="KnarliX Bot Logo">
+  <img src="logo.svg" width="200" alt="Discord Channel Deleter Bot Logo">
   <br>
-  <h2>Channel Manager Bot</h2>
+  <h2>Discord Channel Deleter Bot</h2>
   <p>A powerful Discord bot that revolutionizes channel management for server administrators, providing an efficient solution for organizing and cleaning up Discord servers.</p>
   <br>
   
@@ -172,8 +172,8 @@
 
 ### Step 1: Clone the Repository
 ```bash
-git clone https://github.com/knarlix/discord-channel-manager.git
-cd discord-channel-manager
+git clone https://github.com/knarlix/discord-channel-deleter-bot.git
+cd discord-channel-deleter-bot
 ```
 
 ### Step 2: Install Dependencies
@@ -231,7 +231,7 @@ A companion website for the bot is available in the root directory. You can host
 1. Fork this repository
 2. Go to repository Settings → Pages
 3. Set the source to "main" branch and folder to "/"
-4. Your website will be available at `https://yourusername.github.io/discord-channel-manager`
+4. Your website will be available at `https://yourusername.github.io/discord-channel-deleter-bot`
 
 The website provides detailed information about the bot, usage instructions, and setup guides.
 
@@ -241,7 +241,7 @@ To push your code to GitHub:
 
 1. **Create a GitHub Repository**:
    - Go to [GitHub](https://github.com) and log in
-   - Click "New repository" and name it `discord-channel-manager`
+   - Click "New repository" and name it `discord-channel-deleter-bot`
    - Keep it public or private based on your preference
    - Do not initialize with README, .gitignore, or license (we already have these)
 
@@ -250,9 +250,9 @@ To push your code to GitHub:
    # Make sure you're in the project directory
    git init
    git add .
-   git commit -m "Initial commit: Discord Channel Manager Bot"
+   git commit -m "Initial commit: Discord Channel Deleter Bot"
    git branch -M main
-   git remote add origin https://github.com/yourusername/discord-channel-manager.git
+   git remote add origin https://github.com/yourusername/discord-channel-deleter-bot.git
    git push -u origin main
    ```
 

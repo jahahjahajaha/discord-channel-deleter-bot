@@ -869,7 +869,7 @@ function getFilterName(filter: string): string {
 // Helper function to add branded footer to embeds
 function addBrandedFooter(embed: EmbedBuilder): EmbedBuilder {
   return embed.setFooter({
-    text: 'Created by KnarliX | <@1212719184870383621>',
+    text: 'Discord Channel Deleter Bot | Created by KnarliX | <@1212719184870383621>',
     iconURL: getKnarlixAvatarURL()
   });
 }
