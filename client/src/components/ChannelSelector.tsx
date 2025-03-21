@@ -48,15 +48,15 @@ export default function ChannelSelector({
     };
   }, []);
 
-  // Toggle channel selection
+  // Toggle channel selection - only allow adding, not removing
   const toggleChannel = (channel: Channel) => {
     const isSelected = selectedChannels.some((c) => c.id === channel.id);
     
-    if (isSelected) {
-      setSelectedChannels(selectedChannels.filter((c) => c.id !== channel.id));
-    } else {
+    // Only add channels, don't remove them
+    if (!isSelected) {
       setSelectedChannels([...selectedChannels, channel]);
     }
+    // We no longer remove selected channels from this dropdown
   };
 
   // Filter channels by search query

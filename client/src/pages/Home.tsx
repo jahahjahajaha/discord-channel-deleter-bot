@@ -26,18 +26,9 @@ type TokenFormValues = z.infer<typeof tokenFormSchema>;
 
 export default function Home() {
   const { toast } = useToast();
-  const [showTokenForm, setShowTokenForm] = useState(false);
   const [selectedGuildId, setSelectedGuildId] = useState<string | null>(null);
   const [selectedChannels, setSelectedChannels] = useState<Channel[]>([]);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  
-  // Initialize token form
-  const form = useForm<TokenFormValues>({
-    resolver: zodResolver(tokenFormSchema),
-    defaultValues: {
-      token: "",
-    },
-  });
 
   // Query for bot status
   const { 
@@ -208,46 +199,6 @@ export default function Home() {
         </header>
 
         <main className="p-6">
-          {isBotOffline || showTokenForm ? (
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle>डिस्कॉर्ड बॉट सेटअप</CardTitle>
-                <CardDescription>
-                  बॉट को शुरू करने के लिए अपना डिस्कॉर्ड बॉट टोकन दर्ज करें
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onTokenSubmit)} className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="token"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>डिस्कॉर्ड बॉट टोकन</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="अपना डिस्कॉर्ड बॉट टोकन दर्ज करें" 
-                              type="password" 
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button 
-                      type="submit" 
-                      disabled={startBotMutation.isPending}
-                      className="bg-discord-blurple hover:bg-opacity-80"
-                    >
-                      {startBotMutation.isPending ? "शुरू हो रहा है..." : "बॉट शुरू करें"}
-                    </Button>
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
-          ) : null}
 
           {/* Bot Description Card */}
           <Card className="mb-6 bg-discord-dark border-0">

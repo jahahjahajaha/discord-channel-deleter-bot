@@ -1,5 +1,5 @@
 import { Channel, ChannelType } from "@/types/discord";
-import { X, Hash } from "lucide-react";
+import { Hash } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface SelectedChannelsListProps {
@@ -11,9 +11,7 @@ export default function SelectedChannelsList({
   selectedChannels,
   setSelectedChannels,
 }: SelectedChannelsListProps) {
-  const removeChannel = (channelId: string) => {
-    setSelectedChannels(selectedChannels.filter((channel) => channel.id !== channelId));
-  };
+  // Removed the channel removal functionality as per requirements
 
   // Get channel type icon
   const getChannelIcon = (type: ChannelType) => {
@@ -43,13 +41,6 @@ export default function SelectedChannelsList({
               >
                 {getChannelIcon(channel.type as ChannelType)}
                 {channel.name}
-                <button
-                  type="button"
-                  onClick={() => removeChannel(channel.id)}
-                  className="text-discord-light hover:text-white rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-700 focus:ring-discord-blurple"
-                >
-                  <X className="h-3 w-3" />
-                </button>
               </Badge>
             ))}
           </div>
