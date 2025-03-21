@@ -28,120 +28,16 @@
 
 ## ✨ Features
 
-<div class="features-container">
-  <div class="feature-card">
-    <div class="feature-icon">🗑️</div>
-    <div class="feature-content">
-      <h3>Bulk Channel Deletion</h3>
-      <p>Select which channels to keep and delete the rest in one operation, perfect for server cleanup</p>
-    </div>
-  </div>
-  
-  <div class="feature-card">
-    <div class="feature-icon">📋</div>
-    <div class="feature-content">
-      <h3>Multi-Type Support</h3>
-      <p>Works with all channel types including text, voice, categories, forums, and announcements</p>
-    </div>
-  </div>
-  
-  <div class="feature-card">
-    <div class="feature-icon">🔄</div>
-    <div class="feature-content">
-      <h3>Persistent Selections</h3>
-      <p>Channel selections are saved as you work and persist between navigation</p>
-    </div>
-  </div>
-  
-  <div class="feature-card">
-    <div class="feature-icon">📱</div>
-    <div class="feature-content">
-      <h3>Mobile Compatible</h3>
-      <p>Works perfectly on Discord mobile - manage your server from anywhere</p>
-    </div>
-  </div>
-  
-  <div class="feature-card">
-    <div class="feature-icon">👥</div>
-    <div class="feature-content">
-      <h3>Administrator Only</h3>
-      <p>Commands are restricted to users with administrator permissions for security</p>
-    </div>
-  </div>
-  
-  <div class="feature-card">
-    <div class="feature-icon">🚀</div>
-    <div class="feature-content">
-      <h3>Optimized Performance</h3>
-      <p>Fast operations even on servers with hundreds of channels</p>
-    </div>
-  </div>
-  
-  <div class="feature-card">
-    <div class="feature-icon">📊</div>
-    <div class="feature-content">
-      <h3>Activity Logging</h3>
-      <p>Detailed operation logs to track all channel management activities</p>
-    </div>
-  </div>
-  
-  <div class="feature-card">
-    <div class="feature-icon">🌈</div>
-    <div class="feature-content">
-      <h3>Intuitive UI</h3>
-      <p>User-friendly interface with clear visual indicators and type filtering</p>
-    </div>
-  </div>
-</div>
+### Key Features
 
-<style>
-.features-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  justify-content: center;
-}
-
-.feature-card {
-  display: flex;
-  align-items: flex-start;
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 1rem;
-  width: calc(50% - 1rem);
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.feature-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
-
-.feature-icon {
-  font-size: 2rem;
-  margin-right: 1rem;
-  min-width: 2.5rem;
-  text-align: center;
-}
-
-.feature-content h3 {
-  margin-top: 0;
-  margin-bottom: 0.5rem;
-  color: #5865F2;
-}
-
-.feature-content p {
-  margin: 0;
-  color: #4f5660;
-}
-
-@media (max-width: 768px) {
-  .feature-card {
-    width: 100%;
-  }
-}
-</style>
+- 🗑️ **Bulk Channel Deletion** - Select which channels to keep and delete the rest in one operation, perfect for server cleanup
+- 📋 **Multi-Type Support** - Works with all channel types including text, voice, categories, forums, and announcements
+- 🔄 **Persistent Selections** - Channel selections are saved as you work and persist between navigation
+- 📱 **Mobile Compatible** - Works perfectly on Discord mobile - manage your server from anywhere
+- 👥 **Administrator Only** - Commands are restricted to users with administrator permissions for security
+- 🚀 **Optimized Performance** - Fast operations even on servers with hundreds of channels
+- 📊 **Activity Logging** - Detailed operation logs to track all channel management activities
+- 🌈 **Intuitive UI** - User-friendly interface with clear visual indicators and type filtering
 
 ## 📸 Screenshots
 
@@ -288,64 +184,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Credits
 
 <div align="center">
-  <div class="creator-card">
-    <img src="https://raw.githubusercontent.com/KnarliX/My-pfp/refs/heads/main/pfp.png" alt="KnarliX" class="creator-image">
-    <h3>KnarliX</h3>
-    <p>Lead Developer & Designer</p>
-    <div class="social-links">
-      <a href="https://github.com/KnarliX" title="GitHub"><img src="https://img.shields.io/badge/GitHub-KnarliX-211F1F?style=for-the-badge&logo=github&logoColor=white" alt="GitHub"></a>
-      <a href="https://discord.com/users/1212719184870383621" title="Discord"><img src="https://img.shields.io/badge/Discord-KnarliX-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
-      <a href="https://youtube.com/@KnarliX" title="YouTube"><img src="https://img.shields.io/badge/YouTube-KnarliX-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="YouTube"></a>
-      <a href="https://instagram.com/KnarliX" title="Instagram"><img src="https://img.shields.io/badge/Instagram-KnarliX-E4405F?style=for-the-badge&logo=instagram&logoColor=white" alt="Instagram"></a>
-    </div>
-  </div>
+  <img src="https://raw.githubusercontent.com/KnarliX/My-pfp/refs/heads/main/pfp.png" alt="KnarliX" width="100" style="border-radius:50%">
+  <h3>KnarliX</h3>
+  <p>Lead Developer & Designer</p>
+  <p>
+    <a href="https://github.com/KnarliX" title="GitHub"><img src="https://img.shields.io/badge/GitHub-KnarliX-211F1F?style=for-the-badge&logo=github&logoColor=white" alt="GitHub"></a>
+    <a href="https://discord.com/users/1212719184870383621" title="Discord"><img src="https://img.shields.io/badge/Discord-KnarliX-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
+    <a href="https://youtube.com/@KnarliX" title="YouTube"><img src="https://img.shields.io/badge/YouTube-KnarliX-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="YouTube"></a>
+    <a href="https://instagram.com/KnarliX" title="Instagram"><img src="https://img.shields.io/badge/Instagram-KnarliX-E4405F?style=for-the-badge&logo=instagram&logoColor=white" alt="Instagram"></a>
+  </p>
 </div>
-
-<style>
-.creator-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-color: #ffffff;
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-  max-width: 400px;
-  margin: 0 auto;
-}
-
-.creator-image {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 5px solid #5865F2;
-  margin-bottom: 1rem;
-}
-
-.creator-card h3 {
-  margin: 0.5rem 0;
-  font-size: 1.8rem;
-  color: #23272A;
-}
-
-.creator-card p {
-  margin: 0.25rem 0 1.5rem 0;
-  color: #5865F2;
-  font-weight: 500;
-}
-
-.social-links {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.social-links a {
-  text-decoration: none;
-}
-</style>
 
 ---
 
