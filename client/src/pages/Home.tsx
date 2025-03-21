@@ -211,9 +211,9 @@ export default function Home() {
           {isBotOffline || showTokenForm ? (
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle>Discord Bot Setup</CardTitle>
+                <CardTitle>डिस्कॉर्ड बॉट सेटअप</CardTitle>
                 <CardDescription>
-                  Enter your Discord bot token to start the bot
+                  बॉट को शुरू करने के लिए अपना डिस्कॉर्ड बॉट टोकन दर्ज करें
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -224,10 +224,10 @@ export default function Home() {
                       name="token"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Discord Bot Token</FormLabel>
+                          <FormLabel>डिस्कॉर्ड बॉट टोकन</FormLabel>
                           <FormControl>
                             <Input 
-                              placeholder="Enter your Discord bot token" 
+                              placeholder="अपना डिस्कॉर्ड बॉट टोकन दर्ज करें" 
                               type="password" 
                               {...field} 
                             />
@@ -241,7 +241,7 @@ export default function Home() {
                       disabled={startBotMutation.isPending}
                       className="bg-discord-blurple hover:bg-opacity-80"
                     >
-                      {startBotMutation.isPending ? "Starting..." : "Start Bot"}
+                      {startBotMutation.isPending ? "शुरू हो रहा है..." : "बॉट शुरू करें"}
                     </Button>
                   </form>
                 </Form>
@@ -252,19 +252,19 @@ export default function Home() {
           {/* Bot Description Card */}
           <Card className="mb-6 bg-discord-dark border-0">
             <CardHeader>
-              <CardTitle>Discord Channel Manager Bot</CardTitle>
+              <CardTitle>डिस्कॉर्ड चैनल मैनेजर बॉट</CardTitle>
               <CardDescription className="text-discord-light">
-                This bot helps you manage your Discord server channels efficiently by allowing you to select which channels to keep and delete the rest.
+                यह बॉट आपको अपने डिस्कॉर्ड सर्वर चैनलों को कुशलतापूर्वक प्रबंधित करने में मदद करता है, जिससे आप चुन सकते हैं कि किन चैनलों को रखना है और बाकी को हटाना है।
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="bg-gray-800 p-3 rounded-md mb-4">
                 <div className="flex items-center text-sm text-gray-400 mb-2">
                   <code className="mr-2">{'</>'}</code>
-                  <span>Command Usage</span>
+                  <span>कमांड उपयोग</span>
                 </div>
                 <code className="text-sm font-mono block text-white bg-gray-900 p-3 rounded overflow-x-auto">
-                  /delete-channels [keep: list of channels to keep]
+                  /delete-channels [keep: रखने वाले चैनलों की सूची]
                 </code>
               </div>
               
@@ -277,8 +277,8 @@ export default function Home() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-medium">Select Channels</h3>
-                    <p className="text-discord-light text-sm">Choose which channels to keep</p>
+                    <h3 className="font-medium">चैनल चुनें</h3>
+                    <p className="text-discord-light text-sm">चुनें कौन से चैनल रखने हैं</p>
                   </div>
                 </div>
                 <div className="bg-gray-800 p-3 rounded-md flex items-start">
@@ -286,8 +286,8 @@ export default function Home() {
                     <Trash2 className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="font-medium">Delete Bulk</h3>
-                    <p className="text-discord-light text-sm">Remove multiple channels at once</p>
+                    <h3 className="font-medium">बड़े पैमाने पर हटाएं</h3>
+                    <p className="text-discord-light text-sm">एक साथ कई चैनलों को हटाएं</p>
                   </div>
                 </div>
                 <div className="bg-gray-800 p-3 rounded-md flex items-start">
@@ -298,8 +298,8 @@ export default function Home() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-medium">Authorization</h3>
-                    <p className="text-discord-light text-sm">Only admins can use this command</p>
+                    <h3 className="font-medium">अधिकृति</h3>
+                    <p className="text-discord-light text-sm">केवल व्यवस्थापक ही इस कमांड का उपयोग कर सकते हैं</p>
                   </div>
                 </div>
               </div>
@@ -309,9 +309,9 @@ export default function Home() {
           {/* Channel Management Card */}
           <Card className="mb-6 bg-discord-dark border-0">
             <CardHeader>
-              <CardTitle>Channel Selection</CardTitle>
+              <CardTitle>चैनल चयन</CardTitle>
               <CardDescription className="text-discord-light">
-                Select channels you want to keep. All other channels will be deleted.
+                वे चैनल चुनें जिन्हें आप रखना चाहते हैं। अन्य सभी चैनल हटा दिए जाएंगे।
               </CardDescription>
             </CardHeader>
             <CardContent>

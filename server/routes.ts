@@ -25,6 +25,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize HTTP server
   const httpServer = createServer(app);
 
+  // Start bot automatically if token is in env
+  try {
+    const token = process.env.DISCORD_BOT_TOKEN;
+    if (token) {
+      console.log("Starting bot using token from environment...");
+      await startBot(token);
+    }
+  } catch (error) {
+    console.error("Failed to start bot automatically:", error);
+  }
+
   // API routes
   // Bot status endpoint
   app.get("/api/bot/status", async (_req: Request, res: Response) => {
@@ -39,7 +50,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize/start bot with token
   app.post("/api/bot/start", async (req: Request, res: Response) => {
     try {
-      const { token } = discordTokenSchema.parse(req.body);
+      // If token is provided in request body, use that, otherwise use the one from .env
+      let token;
+      if (req.body.token) {
+        token = discordTokenSchema.parse(req.body).token;
+      } else {
+        token = process.env.DISCORD_BOT_TOKEN;
+        if (!token) {
+          throw new Error("Bot token not found in environment variables");
+        }
+      }
       
       const result = await startBot(token);
       
