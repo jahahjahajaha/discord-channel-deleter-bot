@@ -180,39 +180,28 @@ export default function Home() {
                     <h4 className="text-sm font-semibold text-white">Category Channels</h4>
                     <ChannelSelector 
                       guildId={selectedGuildId}
-                      selectedChannels={selectedChannels.filter(c => c.type === ChannelType.GuildCategory)}
-                      setSelectedChannels={(channels) => {
-                        const otherChannels = selectedChannels.filter(c => c.type !== ChannelType.GuildCategory);
-                        updateSelectedChannels([...otherChannels, ...channels]);
-                      }}
+                      selectedChannels={selectedChannels}
+                      setSelectedChannels={updateSelectedChannels}
+                      filterType={ChannelType.GuildCategory}
+                      title="Select category channels to keep"
                     />
                     
                     <h4 className="text-sm font-semibold text-white mt-4">Text Channels</h4>
                     <ChannelSelector 
                       guildId={selectedGuildId}
-                      selectedChannels={selectedChannels.filter(c => 
-                        c.type === ChannelType.GuildText || 
-                        c.type === ChannelType.GuildAnnouncement || 
-                        c.type === ChannelType.GuildForum
-                      )}
-                      setSelectedChannels={(channels) => {
-                        const otherChannels = selectedChannels.filter(c => 
-                          c.type !== ChannelType.GuildText && 
-                          c.type !== ChannelType.GuildAnnouncement && 
-                          c.type !== ChannelType.GuildForum
-                        );
-                        updateSelectedChannels([...otherChannels, ...channels]);
-                      }}
+                      selectedChannels={selectedChannels}
+                      setSelectedChannels={updateSelectedChannels}
+                      filterType={[ChannelType.GuildText, ChannelType.GuildAnnouncement, ChannelType.GuildForum]}
+                      title="Select text channels to keep"
                     />
                     
                     <h4 className="text-sm font-semibold text-white mt-4">Voice Channels</h4>
                     <ChannelSelector 
                       guildId={selectedGuildId}
-                      selectedChannels={selectedChannels.filter(c => c.type === ChannelType.GuildVoice)}
-                      setSelectedChannels={(channels) => {
-                        const otherChannels = selectedChannels.filter(c => c.type !== ChannelType.GuildVoice);
-                        updateSelectedChannels([...otherChannels, ...channels]);
-                      }}
+                      selectedChannels={selectedChannels}
+                      setSelectedChannels={updateSelectedChannels}
+                      filterType={ChannelType.GuildVoice}
+                      title="Select voice channels to keep"
                     />
                   </div>
                   

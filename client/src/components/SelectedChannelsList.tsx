@@ -1,5 +1,5 @@
 import { Channel, ChannelType } from "@/types/discord";
-import { Hash } from "lucide-react";
+import { Hash, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface SelectedChannelsListProps {
@@ -11,6 +11,12 @@ export default function SelectedChannelsList({
   selectedChannels,
   setSelectedChannels,
 }: SelectedChannelsListProps) {
+  // Remove channel from selection
+  const removeChannel = (channelId: string) => {
+    const updatedChannels = selectedChannels.filter(c => c.id !== channelId);
+    setSelectedChannels(updatedChannels);
+  };
+
   // Get channel type icon
   const getChannelIcon = (type: ChannelType) => {
     switch (type) {
@@ -37,10 +43,28 @@ export default function SelectedChannelsList({
     }
   };
 
+  // Get channel type name
+  const getChannelTypeName = (type: ChannelType) => {
+    switch (type) {
+      case ChannelType.GuildText:
+        return "Text";
+      case ChannelType.GuildVoice:
+        return "Voice";  
+      case ChannelType.GuildCategory:
+        return "Category";
+      case ChannelType.GuildAnnouncement:
+        return "Announcement";
+      case ChannelType.GuildForum:
+        return "Forum";
+      default:
+        return "";
+    }
+  };
+
   return (
     <div>
       <h3 className="text-sm uppercase font-semibold text-discord-light mb-2">
-        Selected Channels to Keep
+        Selected Channels to Keep ({selectedChannels.length})
       </h3>
       <div className="bg-gray-800 rounded-md p-3 min-h-[64px]">
         {selectedChannels.length > 0 ? (
@@ -49,10 +73,24 @@ export default function SelectedChannelsList({
               <Badge 
                 key={channel.id} 
                 variant="outline" 
-                className="bg-gray-700 border-0 text-white py-1 pl-1.5 pr-2 flex items-center gap-1.5"
+                className="bg-gray-700 border-0 text-white py-1 pl-1.5 pr-2 flex items-center gap-1.5 group"
               >
                 {getChannelIcon(channel.type as ChannelType)}
-                {channel.name}
+                <span className="mr-1">{channel.name}</span>
+                <span className="text-xs text-discord-light opacity-50 mr-1">
+                  ({getChannelTypeName(channel.type as ChannelType)})
+                </span>
+                <button 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    removeChannel(channel.id);
+                  }}
+                  className="opacity-50 hover:opacity-100 ml-1 focus:outline-none"
+                  title="Remove from selection"
+                >
+                  <X className="h-3 w-3" />
+                </button>
               </Badge>
             ))}
           </div>
