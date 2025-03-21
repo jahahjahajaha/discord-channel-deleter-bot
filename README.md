@@ -3,7 +3,7 @@
 <div align="center">
   <img src="logo.svg" width="200" alt="KnarliX Bot Logo">
   <br>
-  <h2>Channel Manager Bot 🤖</h2>
+  <h2>Channel Manager Bot</h2>
   <p>A powerful Discord bot that revolutionizes channel management for server administrators, providing an efficient solution for organizing and cleaning up Discord servers.</p>
   <br>
   
