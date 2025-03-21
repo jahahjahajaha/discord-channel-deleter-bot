@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KnarliX Channel Manager - Discord Bot</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+    <meta
+      name="description"
+      content="A powerful Discord bot that revolutionizes channel management for server administrators. Clean up and organize your Discord servers with ease."
+    />
+    <meta property="og:title" content="KnarliX Channel Manager" />
+    <meta
+      property="og:description"
+      content="Revolutionize your Discord server management with this powerful channel cleanup bot"
+    />
+    <meta property="og:image" content="images/bot-preview.png" />
+    <meta
+      property="og:url"
+      content="https://knarlix.github.io/discord-channel-manager/"
+    />
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Header -->
+    <header>
+      <div class="container">
+        <nav>
+          <div class="logo">
+            <img src="images/logo.svg" alt="KnarliX Channel Manager Logo" />
+            <span>KnarliX Channel Manager</span>
+          </div>
+          <ul class="nav-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#setup">Setup</a></li>
+            <li><a href="#faq">FAQ</a></li>
+            <li>
+              <a
+                href="https://github.com/knarlix/discord-channel-manager"
+                class="github-link"
+                ><i class="fab fa-github"></i> GitHub</a
+              >
+            </li>
+          </ul>
+          <div class="hamburger">
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero-content">
+          <h1>Effortlessly Manage Your Discord Channels</h1>
+          <p>
+            A powerful bot that revolutionizes channel management for server
+            administrators, providing an intuitive solution for organizing and
+            cleaning up Discord servers.
+          </p>
+          <div class="cta-buttons">
+            <a
+              href="https://github.com/knarlix/discord-channel-manager"
+              class="primary-btn"
+              ><i class="fab fa-github"></i> View on GitHub</a
+            >
+            <a href="#add-to-discord" class="secondary-btn"
+              ><i class="fab fa-discord"></i> Add to Discord</a
+            >
+          </div>
+        </div>
+        <div class="hero-image">
+          <img src="images/hero-preview.png" alt="Bot Interface Preview" />
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+      <div class="container">
+        <h2>Powerful Features</h2>
+        <p class="section-desc">
+          Everything you need to keep your Discord server organized
+        </p>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-trash-alt"></i></div>
+            <h3>Bulk Channel Deletion</h3>
+            <p>
+              Select which channels to keep and delete the rest in one
+              operation, perfect for server cleanup.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-list-ul"></i></div>
+            <h3>Multi-Type Support</h3>
+            <p>
+              Works with all channel types including text, voice, categories,
+              forums, and announcements.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-sync-alt"></i></div>
+            <h3>Persistent Selections</h3>
+            <p>
+              Channel selections are saved as you work and persist between
+              navigation.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-mobile-alt"></i></div>
+            <h3>Mobile Compatible</h3>
+            <p>
+              Works perfectly on Discord mobile - manage your server from
+              anywhere.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+            <h3>Administrator Only</h3>
+            <p>
+              Commands are restricted to users with administrator permissions
+              for security.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-rocket"></i></div>
+            <h3>Optimized Performance</h3>
+            <p>Fast operations even on servers with hundreds of channels.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="how-it-works">
+      <div class="container">
+        <h2>How It Works</h2>
+        <p class="section-desc">
+          Simple channel management in just a few steps
+        </p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <h3>Invite the Bot</h3>
+              <p>
+                Add KnarliX Channel Manager to your Discord server with the
+                proper permissions.
+              </p>
+              <img src="images/step1.png" alt="Inviting the bot" />
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <h3>Use the /delete-channels Command</h3>
+              <p>
+                Type the slash command in any channel to start the cleanup
+                process.
+              </p>
+              <img src="images/step2.png" alt="Using slash command" />
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <h3>Select Channels to Keep</h3>
+              <p>
+                Use the filter menu to navigate through channels and select the
+                ones you want to keep.
+              </p>
+              <img src="images/step3.png" alt="Selecting channels" />
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-number">4</div>
+            <div class="step-content">
+              <h3>Confirm and Execute</h3>
+              <p>
+                Review your selection and confirm to delete all other channels.
+              </p>
+              <img src="images/step4.png" alt="Confirming deletion" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Setup Section -->
+    <section id="setup" class="setup">
+      <div class="container">
+        <h2>Setup Your Own Bot</h2>
+        <p class="section-desc">
+          Get started with your own instance in minutes
+        </p>
+
+        <div class="setup-tabs">
+          <div class="tab-nav">
+            <button class="tab-btn active" data-tab="prerequisites">
+              Prerequisites
+            </button>
+            <button class="tab-btn" data-tab="installation">
+              Installation
+            </button>
+            <button class="tab-btn" data-tab="configuration">
+              Configuration
+            </button>
+            <button class="tab-btn" data-tab="deployment">Deployment</button>
+          </div>
+
+          <div class="tab-content">
+            <div class="tab-pane active" id="prerequisites">
+              <h3>What You'll Need</h3>
+              <ul class="checklist">
+                <li>Node.js 18+ installed on your system</li>
+                <li>npm or yarn package manager</li>
+                <li>A Discord account</li>
+                <li>A Discord application with bot user created</li>
+                <li>Basic understanding of command line operations</li>
+              </ul>
+              <a
+                href="https://discord.com/developers/applications"
+                class="inline-btn"
+                target="_blank"
+                >Create Discord Application</a
+              >
+            </div>
+
+            <div class="tab-pane" id="installation">
+              <h3>Installation Steps</h3>
+              <div class="code-block">
+                <pre><code># Clone the repository
+git clone https://github.com/knarlix/discord-channel-manager.git
+
+# Navigate to the project directory
+cd discord-channel-manager
+
+# Install dependencies
+npm install</code></pre>
+                <button class="copy-btn" data-target="installation">
+                  <i class="fas fa-copy"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="tab-pane" id="configuration">
+              <h3>Configuration</h3>
+              <p>
+                Create a <code>.env</code> file in the root directory with your
+                Discord bot token:
+              </p>
+              <div class="code-block">
+                <pre><code>DISCORD_BOT_TOKEN="your_discord_bot_token_here"</code></pre>
+                <button class="copy-btn" data-target="configuration">
+                  <i class="fas fa-copy"></i>
+                </button>
+              </div>
+              <p class="warning">
+                <i class="fas fa-exclamation-triangle"></i> Never share your bot
+                token or commit it to version control!
+              </p>
+            </div>
+
+            <div class="tab-pane" id="deployment">
+              <h3>Running Your Bot</h3>
+              <div class="code-block">
+                <pre><code># Start the bot
+npm run dev</code></pre>
+                <button class="copy-btn" data-target="deployment">
+                  <i class="fas fa-copy"></i>
+                </button>
+              </div>
+              <p>For 24/7 hosting, consider using one of these platforms:</p>
+              <div class="hosting-options">
+                <a href="https://replit.com" class="hosting-option">
+                  <img src="images/replit-logo.png" alt="Replit" />
+                  <span>Replit</span>
+                </a>
+                <a href="https://railway.app" class="hosting-option">
+                  <img src="images/railway-logo.png" alt="Railway" />
+                  <span>Railway</span>
+                </a>
+                <a href="https://heroku.com" class="hosting-option">
+                  <img src="images/heroku-logo.png" alt="Heroku" />
+                  <span>Heroku</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="faq">
+      <div class="container">
+        <h2>Frequently Asked Questions</h2>
+        <p class="section-desc">
+          Common questions about KnarliX Channel Manager
+        </p>
+
+        <div class="accordion">
+          <div class="accordion-item">
+            <button class="accordion-header">
+              <span>Is the bot free to use?</span>
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="accordion-content">
+              <p>
+                Yes, the bot is completely free and open source. You can host it
+                yourself or use a hosted version if available.
+              </p>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <button class="accordion-header">
+              <span>Can I customize the bot?</span>
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="accordion-content">
+              <p>
+                Absolutely! The code is open-source and can be modified to suit
+                your needs. Just fork the repository and make your changes.
+              </p>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <button class="accordion-header">
+              <span>How many channels can the bot manage?</span>
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="accordion-content">
+              <p>
+                The bot is designed to handle servers with hundreds of channels
+                efficiently. It includes channel type filtering to make
+                navigation easier.
+              </p>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <button class="accordion-header">
+              <span>Is it safe to use?</span>
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="accordion-content">
+              <p>
+                Yes, the bot only requires the minimum necessary permissions to
+                function. All operations are logged and can be audited, and only
+                server administrators can use destructive commands.
+              </p>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <button class="accordion-header">
+              <span>Can I contribute to the project?</span>
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="accordion-content">
+              <p>
+                Contributions are always welcome! Feel free to submit issues or
+                pull requests on GitHub.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section id="add-to-discord" class="cta">
+      <div class="container">
+        <h2>Ready to Clean Up Your Discord Server?</h2>
+        <p>
+          Get started with KnarliX Channel Manager today and take control of
+          your server's organization.
+        </p>
+        <div class="cta-buttons">
+          <a
+            href="https://github.com/knarlix/discord-channel-manager"
+            class="primary-btn"
+            ><i class="fab fa-github"></i> View on GitHub</a
+          >
+          <a href="#" class="secondary-btn"
+            ><i class="fab fa-discord"></i> Add to Discord</a
+          >
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-logo">
+            <img src="images/logo.svg" alt="KnarliX Channel Manager Logo" />
+            <p>KnarliX Channel Manager</p>
+          </div>
+
+          <div class="footer-links">
+            <div class="footer-section">
+              <h3>Navigation</h3>
+              <ul>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a href="#setup">Setup</a></li>
+                <li><a href="#faq">FAQ</a></li>
+              </ul>
+            </div>
+
+            <div class="footer-section">
+              <h3>Resources</h3>
+              <ul>
+                <li>
+                  <a href="https://github.com/knarlix/discord-channel-manager"
+                    >GitHub Repository</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="https://github.com/knarlix/discord-channel-manager/issues"
+                    >Report an Issue</a
+                  >
+                </li>
+                <li>
+                  <a href="https://discord.js.org/">Discord.js Documentation</a>
+                </li>
+                <li>
+                  <a href="https://discord.com/developers/docs"
+                    >Discord API Documentation</a
+                  >
+                </li>
+              </ul>
+            </div>
+
+            <div class="footer-section">
+              <h3>Connect with KnarliX</h3>
+              <div class="social-links">
+                <a href="https://github.com/KnarliX" class="social-link"
+                  ><i class="fab fa-github"></i
+                ></a>
+                <a
+                  href="https://discord.com/users/1212719184870383621"
+                  class="social-link"
+                  ><i class="fab fa-discord"></i
+                ></a>
+              </div>
+              <div class="creator-info">
+                <img
+                  src="images/My-pfp/pfp.svg"
+                  alt="KnarliX"
+                  class="creator-avatar"
+                />
+                <div>
+                  <h4>KnarliX</h4>
+                  <p>Lead Developer & Designer</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <p>
+            &copy; 2025 KnarliX Channel Manager. Licensed under
+            <a
+              href="https://github.com/knarlix/discord-channel-manager/blob/main/LICENSE"
+              >MIT License</a
+            >.
+          </p>
+          <p>
+            Built with <i class="fas fa-heart"></i> using TypeScript and
+            Discord.js
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="script.js"></script>
+  </body>
+</html>

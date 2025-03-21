@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Bot Face Background -->
+  <rect x="106" y="106" width="300" height="300" rx="60" fill="#5865F2"/>
+  
+  <!-- Bot Eyes -->
+  <circle cx="186" cy="206" r="24" fill="white"/>
+  <circle cx="326" cy="206" r="24" fill="white"/>
+  
+  <!-- Bot Mouth -->
+  <path d="M186 306H326" stroke="white" stroke-width="16" stroke-linecap="round"/>
+  
+  <!-- Antenna -->
+  <path d="M256 106V66" stroke="#5865F2" stroke-width="16" stroke-linecap="round"/>
+  <circle cx="256" cy="46" r="20" fill="#5865F2"/>
+  
+  <!-- Channel Hashtag Symbol -->
+  <path d="M226 246H286M226 266H286M236 226V286M276 226V286" stroke="white" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- Power Button Outline -->
+  <circle cx="256" cy="256" r="200" stroke="#5865F2" stroke-width="12" stroke-dasharray="24 12"/>
+</svg>
