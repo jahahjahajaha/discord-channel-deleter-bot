@@ -138,8 +138,9 @@ export const deleteChannelsCommand = {
             const cancelEmbed = new EmbedBuilder()
               .setColor('#888888')
               .setTitle('Operation Cancelled')
-              .setDescription('Channel deletion has been cancelled.')
-              .setFooter({ text: 'Channel cleanup tool' });
+              .setDescription('Channel deletion has been cancelled.');
+            
+            addBrandedFooter(cancelEmbed);
             
             await i.update({
               embeds: [cancelEmbed],
@@ -154,8 +155,9 @@ export const deleteChannelsCommand = {
             const selectionEmbed = new EmbedBuilder()
               .setColor('#0099ff')
               .setTitle('Select channels to modify')
-              .setDescription('Select channels from the dropdown menu that you want to **KEEP**. All other channels will be deleted.')
-              .setFooter({ text: 'Created by KnarliX | <@1212719184870383621>' });
+              .setDescription('Select channels from the dropdown menu that you want to **KEEP**. All other channels will be deleted.');
+              
+            addBrandedFooter(selectionEmbed);
             
             // Get channels to show in dropdown
             const channelsToShow = sortedChannels.filter(channel => channel !== null);
@@ -287,8 +289,9 @@ export const deleteChannelsCommand = {
                     .map(channel => `• ${getChannelEmoji(channel!.type as any)} ${channel!.name}`)
                     .join('\n') + (channels.size - selectedChannelIds.length > 15 ? '\n• ... and more' : '')
                 }
-              )
-              .setFooter({ text: 'Created by KnarliX | <@1212719184870383621>' });
+              );
+              
+              addBrandedFooter(confirmationEmbed);
             
             // Create final confirmation buttons
             const finalConfirmButton = new ButtonBuilder()
@@ -313,11 +316,13 @@ export const deleteChannelsCommand = {
             // Execute the deletion
             await i.update({
               embeds: [
-                new EmbedBuilder()
-                  .setColor('#ffa500')
-                  .setTitle('Processing')
-                  .setDescription('Deleting channels... Please wait.')
-                  .setFooter({ text: 'Created by KnarliX | <@1212719184870383621>' })
+                (() => {
+                  const processingEmbed = new EmbedBuilder()
+                    .setColor('#ffa500')
+                    .setTitle('Processing')
+                    .setDescription('Deleting channels... Please wait.');
+                  return addBrandedFooter(processingEmbed);
+                })()
               ],
               components: [],
             });
