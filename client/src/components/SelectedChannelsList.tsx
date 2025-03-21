@@ -11,8 +11,6 @@ export default function SelectedChannelsList({
   selectedChannels,
   setSelectedChannels,
 }: SelectedChannelsListProps) {
-  // Removed the channel removal functionality as per requirements
-
   // Get channel type icon
   const getChannelIcon = (type: ChannelType) => {
     switch (type) {

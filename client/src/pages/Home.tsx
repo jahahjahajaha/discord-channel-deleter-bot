@@ -15,14 +15,20 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 export default function Home() {
   const { toast } = useToast();
   const [selectedGuildId, setSelectedGuildId] = useState<string | null>(null);
-  const [selectedChannels, setSelectedChannels] = useState<Channel[]>([]);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   
-  // Custom function to update selected channels that also updates the per-guild storage
+  // Store selected channels by guild ID
+  const [guildSelections, setGuildSelections] = useState<Record<string, Channel[]>>({});
+  
+  // The current selected channels based on the selected guild
+  const selectedChannels = selectedGuildId && guildSelections[selectedGuildId] 
+    ? guildSelections[selectedGuildId] 
+    : [];
+
+  // Function to update selected channels for the current guild
   const updateSelectedChannels = (channels: Channel[]) => {
-    setSelectedChannels(channels);
     if (selectedGuildId) {
-      setChannelSelectionByGuild(prev => ({
+      setGuildSelections(prev => ({
         ...prev,
         [selectedGuildId]: channels
       }));
@@ -48,19 +54,6 @@ export default function Home() {
     queryKey: ["/api/guilds"],
     enabled: botStatus?.status === "online",
   });
-  
-  // Store previously selected channels by guildId to preserve selection across navigation
-  const [channelSelectionByGuild, setChannelSelectionByGuild] = useState<Record<string, Channel[]>>({});
-  
-  // Effect to load previously selected channels when switching guilds
-  useEffect(() => {
-    if (selectedGuildId && channelSelectionByGuild[selectedGuildId]) {
-      setSelectedChannels(channelSelectionByGuild[selectedGuildId]);
-    } else if (selectedGuildId) {
-      // If we don't have any selections for this guild yet, start with empty array
-      setSelectedChannels([]);
-    }
-  }, [selectedGuildId]);
 
   // Mutation for deleting channels
   const deleteChannelsMutation = useMutation({
@@ -126,9 +119,14 @@ export default function Home() {
     setIsConfirmModalOpen(false);
   };
 
-  // Reset channel selection
+  // Reset channel selection for current guild
   const handleResetSelection = () => {
-    updateSelectedChannels([]);
+    if (selectedGuildId) {
+      setGuildSelections(prev => ({
+        ...prev,
+        [selectedGuildId]: []
+      }));
+    }
   };
 
   return (

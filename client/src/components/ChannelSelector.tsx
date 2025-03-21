@@ -48,22 +48,22 @@ export default function ChannelSelector({
     };
   }, []);
 
-  // Toggle channel selection - only allow adding, not removing
-  const toggleChannel = (channel: Channel) => {
-    const isSelected = selectedChannels.some((c) => c.id === channel.id);
+  // Add channel to selection if not already selected
+  const addChannel = (channel: Channel) => {
+    // Check if channel is already selected
+    const isAlreadySelected = selectedChannels.some(c => c.id === channel.id);
     
-    // Only add channels, don't remove them
-    if (!isSelected) {
-      setSelectedChannels([...selectedChannels, channel]);
+    // If not already selected, add it to the selection
+    if (!isAlreadySelected) {
+      const newSelectedChannels = [...selectedChannels, channel];
+      setSelectedChannels(newSelectedChannels);
     }
-    // We no longer remove selected channels from this dropdown
   };
 
   // Filter channels by search query
   const filteredChannels = channels
     ? channels.filter((channel) => 
         channel.name.toLowerCase().includes(searchQuery.toLowerCase())
-        // Include all channel types (text, voice, category, etc.)
       )
     : [];
 
@@ -139,8 +139,8 @@ export default function ChannelSelector({
                   return (
                     <div
                       key={channel.id}
-                      className="px-4 py-2 hover:bg-gray-700 cursor-pointer flex items-center justify-between"
-                      onClick={() => toggleChannel(channel)}
+                      className={`px-4 py-2 hover:bg-gray-700 cursor-pointer flex items-center justify-between ${isSelected ? 'bg-gray-700' : ''}`}
+                      onClick={() => addChannel(channel)}
                     >
                       <div className="flex items-center">
                         {getChannelIcon(channel.type as ChannelType)}
