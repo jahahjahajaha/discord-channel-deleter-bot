@@ -30,7 +30,7 @@ export default function SelectedChannelsList({
   return (
     <div>
       <h3 className="text-sm uppercase font-semibold text-discord-light mb-2">
-        Selected Channels to Keep
+        रखने के लिए चुने गए चैनल
       </h3>
       <div className="bg-gray-800 rounded-md p-3 min-h-[64px]">
         {selectedChannels.length > 0 ? (
@@ -55,7 +55,7 @@ export default function SelectedChannelsList({
           </div>
         ) : (
           <p className="text-discord-light text-sm">
-            No channels selected. All channels will be deleted.
+            कोई चैनल नहीं चुना गया। सभी चैनल हटा दिए जाएंगे।
           </p>
         )}
       </div>

@@ -44,10 +44,10 @@ export default function ConfirmationModal({
       <AlertDialogContent className="bg-discord-dark border-0 text-white">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-white text-xl">
-            Confirm Channel Deletion
+            चैनल हटाने की पुष्टि करें
           </AlertDialogTitle>
           <AlertDialogDescription className="text-discord-light">
-            Are you sure you want to delete all channels except the selected ones? This action cannot be undone.
+            क्या आप सुनिश्चित हैं कि आप चुने गए चैनलों को छोड़कर सभी चैनलों को हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।
           </AlertDialogDescription>
         </AlertDialogHeader>
         
@@ -55,9 +55,9 @@ export default function ConfirmationModal({
           <div className="flex items-start">
             <AlertTriangle className="text-discord-red mr-3 mt-0.5 h-5 w-5 flex-shrink-0" />
             <div>
-              <h4 className="font-medium text-discord-red">Warning: Destructive Action</h4>
+              <h4 className="font-medium text-discord-red">चेतावनी: विनाशकारी क्रिया</h4>
               <p className="text-sm text-discord-light">
-                This will permanently delete all channels from your server except for the selected ones.
+                यह चुने गए चैनलों को छोड़कर आपके सर्वर से सभी चैनलों को स्थायी रूप से हटा देगा।
               </p>
             </div>
           </div>
@@ -65,7 +65,7 @@ export default function ConfirmationModal({
         
         <div className="bg-gray-800 p-3 rounded-md mb-5">
           <h4 className="text-sm uppercase font-semibold text-discord-light mb-2">
-            Channels to keep:
+            रखने के लिए चैनल:
           </h4>
           <div className="flex flex-wrap gap-2">
             {selectedChannels.length > 0 ? (
@@ -81,7 +81,7 @@ export default function ConfirmationModal({
               ))
             ) : (
               <p className="text-discord-light text-sm">
-                No channels selected. ALL channels will be deleted!
+                कोई चैनल नहीं चुना गया। सभी चैनल हटा दिए जाएंगे!
               </p>
             )}
           </div>
@@ -92,14 +92,14 @@ export default function ConfirmationModal({
             className="bg-gray-700 text-white border-0 hover:bg-gray-600"
             disabled={isPending}
           >
-            Cancel
+            रद्द करें
           </AlertDialogCancel>
           <AlertDialogAction 
             className="bg-discord-red text-white hover:bg-red-700"
             onClick={onConfirm}
             disabled={isPending}
           >
-            {isPending ? "Deleting..." : "Confirm Deletion"}
+            {isPending ? "हटाया जा रहा है..." : "हटाने की पुष्टि करें"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

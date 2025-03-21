@@ -337,7 +337,7 @@ export default function Home() {
                       className="bg-gray-700 border-0 text-white hover:bg-gray-600"
                     >
                       <RefreshCcw className="mr-2 h-4 w-4" />
-                      Reset Selection
+                      चयन रीसेट करें
                     </Button>
                     <Button 
                       variant="destructive"
@@ -347,8 +347,8 @@ export default function Home() {
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
                       {deleteChannelsMutation.isPending 
-                        ? "Deleting..." 
-                        : "Delete Other Channels"}
+                        ? "हटाया जा रहा है..." 
+                        : "अन्य चैनल हटाएं"}
                     </Button>
                   </div>
                 </>
@@ -356,9 +356,9 @@ export default function Home() {
                 <div className="flex items-center justify-center p-6 text-center">
                   <div>
                     <AlertTriangle className="mx-auto h-12 w-12 text-yellow-500 mb-4" />
-                    <h3 className="text-lg font-medium mb-2">No Server Selected</h3>
+                    <h3 className="text-lg font-medium mb-2">कोई सर्वर नहीं चुना गया</h3>
                     <p className="text-discord-light mb-4">
-                      Please select a server from the sidebar to manage its channels.
+                      कृपया अपने चैनलों को प्रबंधित करने के लिए साइडबार से एक सर्वर चुनें।
                     </p>
                   </div>
                 </div>
@@ -369,7 +369,7 @@ export default function Home() {
           {/* Log Card */}
           <Card className="bg-discord-dark border-0">
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Operation Log</CardTitle>
+              <CardTitle>ऑपरेशन लॉग</CardTitle>
               <Button 
                 variant="ghost" 
                 size="icon"
@@ -383,7 +383,7 @@ export default function Home() {
                 <LogDisplay guildId={selectedGuildId} />
               ) : (
                 <div className="bg-gray-800 rounded-md p-3 h-40 flex items-center justify-center font-mono text-sm">
-                  <p className="text-discord-light">Select a server to view logs</p>
+                  <p className="text-discord-light">लॉग देखने के लिए एक सर्वर चुनें</p>
                 </div>
               )}
             </CardContent>
