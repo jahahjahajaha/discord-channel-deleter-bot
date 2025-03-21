@@ -71,150 +71,81 @@ export const deleteChannelsCommand = {
         ].includes(channel.type as any)
       );
 
+      // Sort channels by type and name for better organization
+      const sortedChannels = Array.from(selectableChannels.values()).sort((a, b) => {
+        // First sort by type
+        if ((a?.type as number) !== (b?.type as number)) {
+          return (a?.type as number) - (b?.type as number);
+        }
+        // Then sort by name
+        return a!.name.localeCompare(b!.name);
+      });
+
       // Create an embed for the selection interface
       const embed = new EmbedBuilder()
         .setColor('#0099ff')
         .setTitle('Channel Cleanup')
-        .setDescription('Select channels to **KEEP** from the dropdown menu below. All other channels will be deleted.')
+        .setDescription('Select channels to **KEEP** by checking the boxes. All other channels will be deleted.')
         .addFields(
           { name: 'WARNING', value: 'This action cannot be undone! Be careful when selecting channels to keep.' },
-          { name: 'Instructions', value: 'You can select multiple channels by clicking on the dropdown multiple times. When you\'re done, click the Confirm button.' }
+          { name: 'Instructions', value: 'Check the boxes next to the channels you want to keep. When you\'re done, click the Select button.' }
         )
         .setFooter({ text: 'Channel cleanup tool' });
 
-      // Create a select menu with channel options (up to 25 options)
-      const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId('select-channels')
-        .setPlaceholder('Select channels to keep')
-        .setMinValues(1)
-        .setMaxValues(Math.min(25, selectableChannels.size))
-        .addOptions(
-          Array.from(selectableChannels.values())
-            .slice(0, 25) // Discord has a limit of 25 options in a select menu
-            .map(channel => {
-              let emoji = '📝'; // Default emoji for text channels
-              
-              // Set different emoji based on channel type
-              if (channel!.type === ChannelType.GuildVoice) {
-                emoji = '🔊';
-              } else if (channel!.type === ChannelType.GuildCategory) {
-                emoji = '📁';
-              } else if (channel!.type === ChannelType.GuildForum) {
-                emoji = '📊';
-              } else if (channel!.type === ChannelType.GuildAnnouncement) {
-                emoji = '📢';
-              }
-              
-              return new StringSelectMenuOptionBuilder()
-                .setLabel(channel!.name)
-                .setDescription(`${getChannelTypeName(channel!.type as any)}`)
-                .setValue(channel!.id)
-                .setEmoji(emoji);
-            })
-        );
-
-      // Add the current channel by default (to prevent users from deleting the channel they're using)
-      const currentChannelOption = selectMenu.options.find(option => 
-        option.data.value === interaction.channelId
-      );
-      
-      if (!currentChannelOption && interaction.channelId) {
-        const currentChannel = channels.get(interaction.channelId);
-        if (currentChannel) {
-          selectMenu.addOptions(
-            new StringSelectMenuOptionBuilder()
-              .setLabel(currentChannel.name)
-              .setDescription(`Current channel (can't be removed)`)
-              .setValue(currentChannel.id)
-              .setEmoji('📌')
-              .setDefault(true)
-          );
-        }
-      }
-
       // Create action buttons
-      const confirmButton = new ButtonBuilder()
-        .setCustomId('confirm-delete')
-        .setLabel('Confirm Deletion')
-        .setStyle(ButtonStyle.Danger)
-        .setDisabled(true);
+      const selectButton = new ButtonBuilder()
+        .setCustomId('select-complete')
+        .setLabel('Select')
+        .setStyle(ButtonStyle.Primary);
       
       const cancelButton = new ButtonBuilder()
         .setCustomId('cancel-delete')
         .setLabel('Cancel')
         .setStyle(ButtonStyle.Secondary);
 
-      // Create action rows for the components
-      const selectRow = new ActionRowBuilder<StringSelectMenuBuilder>()
-        .addComponents(selectMenu);
-      
+      // Create the action row for buttons
       const buttonRow = new ActionRowBuilder<ButtonBuilder>()
-        .addComponents(cancelButton, confirmButton);
+        .addComponents(cancelButton, selectButton);
 
-      // Send the initial message with components
+      // Create message components for channel selection
+      // We need to split channels into multiple action rows (max 5 per message, max 5 components per row)
+      const maxRowsPerMessage = 5;
+      const maxComponentsPerRow = 5;
+      
+      // We'll create a "page" system for channel selection since Discord has limitations
+      const channelPages: {
+        embed: EmbedBuilder,
+        components: ActionRowBuilder<ButtonBuilder>[]
+      }[] = [];
+      
+      // Calculate how many channels we can show per page
+      const channelsPerPage = maxRowsPerMessage * maxComponentsPerRow;
+      const totalPages = Math.ceil(sortedChannels.length / channelsPerPage);
+
+      // Send the initial embed with a message about channel selection
       const response = await interaction.reply({
         embeds: [embed],
-        components: [selectRow, buttonRow],
+        components: [buttonRow],
         ephemeral: true
       });
 
       // Store selected channel IDs
       let selectedChannelIds: string[] = [];
+      // Always include the current channel to prevent deletion of the channel where command is used
       if (interaction.channelId) {
-        selectedChannelIds = [interaction.channelId]; // Always include current channel
+        selectedChannelIds = [interaction.channelId];
       }
 
-      // Create collectors for interactions
-      const collector = response.createMessageComponentCollector({ 
-        componentType: ComponentType.StringSelect,
-        time: 300000 // 5 minutes timeout
-      });
-
+      // Create collector for button interactions
       const buttonCollector = response.createMessageComponentCollector({
         componentType: ComponentType.Button,
         time: 300000 // 5 minutes timeout
       });
 
-      // Handle select menu interactions
-      collector.on('collect', async (i: StringSelectMenuInteraction) => {
-        if (i.customId === 'select-channels') {
-          // Update selected channels
-          selectedChannelIds = i.values;
-          
-          // Always include the current channel
-          if (interaction.channelId && !selectedChannelIds.includes(interaction.channelId)) {
-            selectedChannelIds.push(interaction.channelId);
-          }
-          
-          // Update embed with selected channels
-          const updatedEmbed = EmbedBuilder.from(embed)
-            .setFields(
-              { name: 'WARNING', value: 'This action cannot be undone! Be careful when selecting channels to keep.' },
-              { name: 'Instructions', value: 'You can select multiple channels by clicking on the dropdown multiple times. When you\'re done, click the Confirm button.' },
-              { 
-                name: 'Selected Channels to Keep', 
-                value: selectedChannelIds.length > 0 
-                  ? selectedChannelIds.map(id => {
-                      const channel = channels.get(id);
-                      return channel ? `• ${getChannelEmoji(channel.type as any)} ${channel.name}` : `• Unknown channel (${id})`;
-                    }).join('\n')
-                  : 'No channels selected'
-              }
-            );
-          
-          // Enable confirm button if channels are selected
-          const updatedConfirmButton = ButtonBuilder.from(confirmButton)
-            .setDisabled(selectedChannelIds.length === 0);
-          
-          const updatedButtonRow = new ActionRowBuilder<ButtonBuilder>()
-            .addComponents(cancelButton, updatedConfirmButton);
-          
-          // Update the message
-          await i.update({
-            embeds: [updatedEmbed],
-            components: [selectRow, updatedButtonRow],
-          });
-        }
+      // Create collector for string select interactions
+      const stringSelectCollector = response.createMessageComponentCollector({ 
+        componentType: ComponentType.StringSelect,
+        time: 300000 // 5 minutes timeout
       });
 
       // Handle button interactions
@@ -233,11 +164,81 @@ export const deleteChannelsCommand = {
           });
           
           // Stop collectors
-          collector.stop();
           buttonCollector.stop();
         } 
-        else if (i.customId === 'confirm-delete') {
-          // Confirm deletion - show confirmation dialog
+        else if (i.customId === 'select-complete') {
+          // Show channel selection UI similar to the screenshot
+          const selectionEmbed = new EmbedBuilder()
+            .setColor('#0099ff')
+            .setTitle('Select channels to modify')
+            .setDescription('Check the boxes next to the channels you want to keep. All other channels will be deleted.')
+            .setFooter({ text: 'Click "Select" when done' });
+          
+          // Create action rows with buttons representing channels
+          const channelRows: ActionRowBuilder<ButtonBuilder>[] = [];
+          const channelsToShow = sortedChannels.slice(0, 25); // Discord UI limitation
+          
+          // Create rows of channel buttons
+          for (let i = 0; i < channelsToShow.length; i++) {
+            const channel = channelsToShow[i];
+            if (!channel) continue;
+            
+            // Check if this is the current channel
+            const isCurrentChannel = channel.id === interaction.channelId;
+            // Check if channel is already selected
+            const isSelected = selectedChannelIds.includes(channel.id);
+            
+            // Get appropriate emoji for channel type
+            const emoji = getChannelEmoji(channel.type as any);
+            
+            // Create button for this channel
+            const channelButton = new ButtonBuilder()
+              .setCustomId(`channel-${channel.id}`)
+              .setLabel(`${channel.name}`)
+              .setEmoji(isSelected || isCurrentChannel ? '✅' : emoji)
+              .setStyle(isSelected || isCurrentChannel ? ButtonStyle.Success : ButtonStyle.Secondary);
+            
+            // Add button to appropriate row
+            const rowIndex = Math.floor(i / 5);
+            if (!channelRows[rowIndex]) {
+              channelRows[rowIndex] = new ActionRowBuilder<ButtonBuilder>();
+            }
+            
+            channelRows[rowIndex].addComponents(channelButton);
+          }
+          
+          // Add confirmation button
+          const confirmRow = new ActionRowBuilder<ButtonBuilder>()
+            .addComponents(
+              new ButtonBuilder()
+                .setCustomId('back-button')
+                .setLabel('Back')
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('🔙'),
+              new ButtonBuilder()
+                .setCustomId('confirm-selection')
+                .setLabel('Confirm')
+                .setStyle(ButtonStyle.Primary)
+            );
+          
+          // Add components to overall message
+          const allComponents = [...channelRows, confirmRow];
+          
+          // Update the message with channel selection UI
+          await i.update({
+            embeds: [selectionEmbed],
+            components: allComponents,
+          });
+        }
+        else if (i.customId === 'back-button') {
+          // Go back to main menu
+          await i.update({
+            embeds: [embed],
+            components: [buttonRow],
+          });
+        }
+        else if (i.customId === 'confirm-selection') {
+          // Show confirmation dialog
           const confirmationEmbed = new EmbedBuilder()
             .setColor('#ff0000')
             .setTitle('⚠️ Final Confirmation Required ⚠️')
@@ -280,6 +281,79 @@ export const deleteChannelsCommand = {
             components: [finalButtonRow],
           });
         }
+        else if (i.customId.startsWith('channel-')) {
+          // Channel selection button clicked
+          const channelId = i.customId.replace('channel-', '');
+          
+          // Toggle selection (except for current channel which must be kept)
+          if (channelId !== interaction.channelId) {
+            if (selectedChannelIds.includes(channelId)) {
+              // Remove from selected
+              selectedChannelIds = selectedChannelIds.filter(id => id !== channelId);
+            } else {
+              // Add to selected
+              selectedChannelIds.push(channelId);
+            }
+          }
+          
+          // Reconstruct the UI with updated selections
+          // This is necessary because Discord doesn't allow updating individual buttons
+          
+          // Get the channel buttons from current components
+          const channelComponents = i.message.components.slice(0, -1); // Exclude the last confirm row
+          const confirmRow = i.message.components[i.message.components.length - 1];
+          
+          // Create updated button rows
+          const updatedRows: ActionRowBuilder<ButtonBuilder>[] = [];
+          
+          // Process each existing row
+          for (let rowIndex = 0; rowIndex < channelComponents.length; rowIndex++) {
+            const row = channelComponents[rowIndex];
+            const updatedRow = new ActionRowBuilder<ButtonBuilder>();
+            
+            // Update each button in the row
+            for (const button of row.components) {
+              if (button.type === ComponentType.Button) {
+                const buttonId = button.customId as string;
+                
+                if (buttonId.startsWith('channel-')) {
+                  const buttonChannelId = buttonId.replace('channel-', '');
+                  const channel = channels.get(buttonChannelId);
+                  
+                  if (channel) {
+                    // Check if selected or current channel
+                    const isCurrentChannel = buttonChannelId === interaction.channelId;
+                    const isSelected = selectedChannelIds.includes(buttonChannelId);
+                    
+                    // Get appropriate emoji
+                    const emoji = getChannelEmoji(channel.type as any);
+                    
+                    // Create updated button
+                    updatedRow.addComponents(
+                      new ButtonBuilder()
+                        .setCustomId(buttonId)
+                        .setLabel(channel.name)
+                        .setEmoji(isSelected || isCurrentChannel ? '✅' : emoji)
+                        .setStyle(isSelected || isCurrentChannel ? ButtonStyle.Success : ButtonStyle.Secondary)
+                    );
+                  }
+                }
+              }
+            }
+            
+            updatedRows.push(updatedRow);
+          }
+          
+          // Add the confirm row back
+          const updatedConfirmRow = ActionRowBuilder.from(confirmRow as any);
+          
+          // Update the message with the new button states
+          await i.update({
+            components: [...updatedRows, updatedConfirmRow],
+          });
+        }
+
+
         else if (i.customId === 'final-confirm') {
           // Execute the deletion
           await i.update({
@@ -350,7 +424,7 @@ export const deleteChannelsCommand = {
       });
 
       // Handle collector end
-      collector.on('end', async (collected, reason) => {
+      stringSelectCollector.on('end', async (collected, reason) => {
         if (reason === 'time') {
           // Timed out
           const timeoutEmbed = new EmbedBuilder()
