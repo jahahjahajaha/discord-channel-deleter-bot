@@ -226,11 +226,11 @@ This project can be deployed on any Node.js hosting platform:
 
 ## 🌐 Website
 
-A companion website for the bot is available in the `/website` directory. You can host it on GitHub Pages:
+A companion website for the bot is available in the root directory. You can host it on GitHub Pages:
 
 1. Fork this repository
 2. Go to repository Settings → Pages
-3. Set the source to "main" branch and folder to "/website"
+3. Set the source to "main" branch and folder to "/"
 4. Your website will be available at `https://yourusername.github.io/discord-channel-manager`
 
 The website provides detailed information about the bot, usage instructions, and setup guides.
@@ -295,6 +295,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
     <div class="social-links">
       <a href="https://github.com/KnarliX" title="GitHub"><img src="https://img.shields.io/badge/GitHub-KnarliX-211F1F?style=for-the-badge&logo=github&logoColor=white" alt="GitHub"></a>
       <a href="https://discord.com/users/1212719184870383621" title="Discord"><img src="https://img.shields.io/badge/Discord-KnarliX-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
+      <a href="https://youtube.com/@KnarliX" title="YouTube"><img src="https://img.shields.io/badge/YouTube-KnarliX-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="YouTube"></a>
+      <a href="https://instagram.com/KnarliX" title="Instagram"><img src="https://img.shields.io/badge/Instagram-KnarliX-E4405F?style=for-the-badge&logo=instagram&logoColor=white" alt="Instagram"></a>
     </div>
   </div>
 </div>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="500" height="300" viewBox="0 0 500 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="500" height="300" rx="10" fill="#F6F6F7"/>
+  
+  <!-- Discord Server Icon -->
+  <circle cx="150" cy="150" r="70" fill="#5865F2"/>
+  <path d="M150 110C130 110 120 127 120 127C120 127 127 100 150 100C173 100 180 127 180 127C180 127 170 110 150 110Z" fill="white"/>
+  <circle cx="130" cy="150" r="10" fill="white"/>
+  <circle cx="170" cy="150" r="10" fill="white"/>
+  <path d="M130 180C130 180 150 190 170 180" stroke="white" stroke-width="6" stroke-linecap="round"/>
+  
+  <!-- Plus Sign -->
+  <rect x="250" y="140" width="60" height="20" rx="5" fill="#43B581"/>
+  <rect x="270" y="120" width="20" height="60" rx="5" fill="#43B581"/>
+  
+  <!-- Bot Icon -->
+  <circle cx="370" cy="150" r="50" fill="#5865F2"/>
+  <rect x="350" y="130" width="40" height="40" rx="5" fill="white"/>
+  <circle cx="360" cy="140" r="5" fill="#5865F2"/>
+  <circle cx="380" cy="140" r="5" fill="#5865F2"/>
+  <path d="M355 155H385" stroke="#5865F2" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Text Labels -->
+  <rect x="115" y="230" width="70" height="20" rx="3" fill="#2C2F33"/>
+  <rect x="335" y="230" width="70" height="20" rx="3" fill="#2C2F33"/>
+</svg>
