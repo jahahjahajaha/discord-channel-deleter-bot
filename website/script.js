@@ -14,15 +14,15 @@ document.addEventListener('DOMContentLoaded', function() {
   const themeToggle = document.getElementById('theme-toggle');
   const htmlElement = document.documentElement;
 
-  // Check for saved theme preference, default to dark theme
+  // Check for saved theme preference, default to light theme
   const savedTheme = localStorage.getItem('theme');
 
   if (savedTheme) {
     htmlElement.setAttribute('data-theme', savedTheme);
     updateThemeIcon(savedTheme);
   } else {
-    // If no saved preference, default to dark theme
-    const initialTheme = 'dark';
+    // If no saved preference, default to light theme
+    const initialTheme = 'light';
     htmlElement.setAttribute('data-theme', initialTheme);
     localStorage.setItem('theme', initialTheme); // Save the default preference
     updateThemeIcon(initialTheme);
