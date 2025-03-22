@@ -863,6 +863,11 @@ function getFilterName(filter: string): string {
     case 'category': return 'Categories';
     case 'announcement': return 'Announcement Channels';
     case 'forum': return 'Forum Channels';
+    case 'high': return 'High Priority Roles';
+    case 'medium': return 'Medium Priority Roles';
+    case 'low': return 'Low Priority Roles';
+    case 'hoisted': return 'Displayed Separately Roles';
+    case 'color': return 'Colored Roles';
     default: return 'All Channels';
   }
 }
@@ -956,6 +961,7 @@ export const deleteRolesCommand = {
       // Store selected role IDs and pagination variables
       let selectedRoleIds: string[] = [];
       let currentPage = 0; // Track the current page for pagination
+      let currentFilter = 'all'; // Default to showing all role types
       
       // Create collector for component interactions
       const collector = response.createMessageComponentCollector({
@@ -993,8 +999,10 @@ export const deleteRolesCommand = {
             
             // Create select menu options for roles
             const allSelectOptions = sortedRoles.map(role => {
+              // Ensure role name is not empty (Discord.js validation requires non-empty strings)
+              const roleName = role.name.trim() || `Role (ID: ${role.id})`;
               return new StringSelectMenuOptionBuilder()
-                .setLabel(role.name)
+                .setLabel(roleName)
                 .setDescription(`Position: ${role.position}`)
                 .setValue(role.id)
                 .setEmoji('🏷️');
@@ -1066,14 +1074,60 @@ export const deleteRolesCommand = {
                   .setStyle(ButtonStyle.Primary)
               );
             
+            // Create type filter menu
+            const typeFilterMenu = new StringSelectMenuBuilder()
+              .setCustomId('filter-type')
+              .setPlaceholder('Filter by role priority')
+              .addOptions([
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('All Roles')
+                  .setValue('all')
+                  .setDescription('Show all roles')
+                  .setDefault(currentFilter === 'all'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('High Priority Roles')
+                  .setValue('high')
+                  .setEmoji('🔝')
+                  .setDescription('Show only high priority roles (position > 15)')
+                  .setDefault(currentFilter === 'high'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Medium Priority Roles')
+                  .setValue('medium')
+                  .setEmoji('⏺️')
+                  .setDescription('Show only medium priority roles (position 5-15)')
+                  .setDefault(currentFilter === 'medium'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Low Priority Roles')
+                  .setValue('low')
+                  .setEmoji('⏬')
+                  .setDescription('Show only low priority roles (position < 5)')
+                  .setDefault(currentFilter === 'low'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Displayed Separately')
+                  .setValue('hoisted')
+                  .setEmoji('📌')
+                  .setDescription('Show only roles displayed separately in member list')
+                  .setDefault(currentFilter === 'hoisted'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Colored Roles')
+                  .setValue('color')
+                  .setEmoji('🎨')
+                  .setDescription('Show only roles with custom colors')
+                  .setDefault(currentFilter === 'color')
+              ]);
+            
+            // Create filter row
+            const typeFilterRow = new ActionRowBuilder<StringSelectMenuBuilder>()
+              .addComponents(typeFilterMenu);
+              
             // Create select row
             const selectRow = new ActionRowBuilder<StringSelectMenuBuilder>()
               .addComponents(selectMenu);
             
             // Update the message with role selection UI and add pagination if needed
             const components = allSelectOptions.length > 25 
-                ? [selectRow, navigationRow, buttonRow] 
-                : [selectRow, buttonRow];
+                ? [typeFilterRow, selectRow, navigationRow, buttonRow] 
+                : [typeFilterRow, selectRow, buttonRow];
                 
             await i.update({
               embeds: [selectionEmbed, selectedRolesEmbed],
@@ -1214,8 +1268,10 @@ export const deleteRolesCommand = {
             
             // Create all select menu options
             const allSelectOptions = sortedRoles.map(role => {
+              // Ensure role name is not empty (Discord.js validation requires non-empty strings)
+              const roleName = role.name.trim() || `Role (ID: ${role.id})`;
               return new StringSelectMenuOptionBuilder()
-                .setLabel(role.name)
+                .setLabel(roleName)
                 .setDescription(`Position: ${role.position}`)
                 .setValue(role.id)
                 .setEmoji('🏷️');
@@ -1305,10 +1361,55 @@ export const deleteRolesCommand = {
             // Add branded footer
             addBrandedFooter(updatedEmbeds[0]);
             
+            // Get the type filter menu
+            const typeFilterMenu = new StringSelectMenuBuilder()
+              .setCustomId('filter-type')
+              .setPlaceholder('Filter by role priority')
+              .addOptions([
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('All Roles')
+                  .setValue('all')
+                  .setDescription('Show all roles')
+                  .setDefault(currentFilter === 'all'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('High Priority Roles')
+                  .setValue('high')
+                  .setEmoji('🔝')
+                  .setDescription('Show only high priority roles (position > 15)')
+                  .setDefault(currentFilter === 'high'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Medium Priority Roles')
+                  .setValue('medium')
+                  .setEmoji('⏺️')
+                  .setDescription('Show only medium priority roles (position 5-15)')
+                  .setDefault(currentFilter === 'medium'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Low Priority Roles')
+                  .setValue('low')
+                  .setEmoji('⏬')
+                  .setDescription('Show only low priority roles (position < 5)')
+                  .setDefault(currentFilter === 'low'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Displayed Separately')
+                  .setValue('hoisted')
+                  .setEmoji('📌')
+                  .setDescription('Show only roles displayed separately in member list')
+                  .setDefault(currentFilter === 'hoisted'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Colored Roles')
+                  .setValue('color')
+                  .setEmoji('🎨')
+                  .setDescription('Show only roles with custom colors')
+                  .setDefault(currentFilter === 'color')
+              ]);
+            
+            const typeFilterRow = new ActionRowBuilder<StringSelectMenuBuilder>()
+              .addComponents(typeFilterMenu);
+            
             // Update the UI with new page
             await i.update({
               embeds: updatedEmbeds,
-              components: [selectRow, navigationRow, buttonRow],
+              components: [typeFilterRow, selectRow, navigationRow, buttonRow],
             });
           }
         }
@@ -1341,6 +1442,183 @@ export const deleteRolesCommand = {
             await i.update({
               embeds: [i.message.embeds[0], selectedRolesEmbed],
               components: currentComponents,
+            });
+          }
+          else if (i.customId === 'filter-type') {
+            // Handle role filtering
+            currentFilter = i.values[0];
+            currentPage = 0; // Reset page when changing filter
+            
+            // Get the filtered roles
+            const filteredRoles = sortedRoles.filter(role => {
+              if (currentFilter === 'all') return true;
+              if (currentFilter === 'high' && role.position > 15) return true;
+              if (currentFilter === 'medium' && role.position >= 5 && role.position <= 15) return true;
+              if (currentFilter === 'low' && role.position < 5) return true;
+              if (currentFilter === 'hoisted' && role.hoist) return true;
+              if (currentFilter === 'color' && role.color !== 0) return true;
+              return false;
+            });
+            
+            // Create options for the filtered roles
+            const filteredOptions = filteredRoles.map(role => {
+              // Ensure role name is not empty (Discord.js validation requires non-empty strings)
+              const roleName = role.name.trim() || `Role (ID: ${role.id})`;
+              return new StringSelectMenuOptionBuilder()
+                .setLabel(roleName)
+                .setDescription(`Position: ${role.position}`)
+                .setValue(role.id)
+                .setEmoji('🏷️');
+            });
+            
+            // Calculate page bounds
+            const pageSize = 25;
+            const totalPages = Math.ceil(filteredOptions.length / pageSize);
+            const startIdx = currentPage * pageSize;
+            const endIdx = Math.min(startIdx + pageSize, filteredOptions.length);
+            
+            // Get options for current page
+            const pageOptions = filteredOptions.slice(startIdx, endIdx);
+            
+            // Create type filter menu
+            const typeFilterMenu = new StringSelectMenuBuilder()
+              .setCustomId('filter-type')
+              .setPlaceholder('Filter by role priority')
+              .addOptions([
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('All Roles')
+                  .setValue('all')
+                  .setDescription('Show all roles')
+                  .setDefault(currentFilter === 'all'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('High Priority Roles')
+                  .setValue('high')
+                  .setEmoji('🔝')
+                  .setDescription('Show only high priority roles (position > 15)')
+                  .setDefault(currentFilter === 'high'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Medium Priority Roles')
+                  .setValue('medium')
+                  .setEmoji('⏺️')
+                  .setDescription('Show only medium priority roles (position 5-15)')
+                  .setDefault(currentFilter === 'medium'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Low Priority Roles')
+                  .setValue('low')
+                  .setEmoji('⏬')
+                  .setDescription('Show only low priority roles (position < 5)')
+                  .setDefault(currentFilter === 'low'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Displayed Separately')
+                  .setValue('hoisted')
+                  .setEmoji('📌')
+                  .setDescription('Show only roles displayed separately in member list')
+                  .setDefault(currentFilter === 'hoisted'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Colored Roles')
+                  .setValue('color')
+                  .setEmoji('🎨')
+                  .setDescription('Show only roles with custom colors')
+                  .setDefault(currentFilter === 'color')
+              ]);
+            
+            // Create channel selection menu
+            let selectMenu = new StringSelectMenuBuilder()
+              .setCustomId('select-roles')
+              .setPlaceholder(`Select roles (${startIdx + 1}-${endIdx} of ${filteredOptions.length}, ${selectedRoleIds.length} selected)`)
+              .setMinValues(0)
+              .setMaxValues(pageOptions.length);
+              
+            // Add options to the select menu
+            if (pageOptions.length > 0) {
+              selectMenu.addOptions(pageOptions);
+            } else {
+              // If no roles of this type, show a placeholder and disable the menu
+              selectMenu
+                .addOptions([
+                  new StringSelectMenuOptionBuilder()
+                    .setLabel('No roles of this type')
+                    .setValue('none')
+                    .setDescription('Try a different filter')
+                ])
+                .setDisabled(true);
+            }
+              
+            const typeFilterRow = new ActionRowBuilder<StringSelectMenuBuilder>()
+              .addComponents(typeFilterMenu);
+              
+            const selectRow = new ActionRowBuilder<StringSelectMenuBuilder>()
+              .addComponents(selectMenu);
+              
+            // Create navigation buttons
+            const navigationRow = new ActionRowBuilder<ButtonBuilder>()
+              .addComponents(
+                new ButtonBuilder()
+                  .setCustomId('prev-page')
+                  .setLabel('Previous Page')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('⬅️')
+                  .setDisabled(currentPage === 0),
+                new ButtonBuilder()
+                  .setCustomId('next-page')
+                  .setLabel('Next Page')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('➡️')
+                  .setDisabled(currentPage === totalPages - 1 || totalPages === 0)
+              );
+              
+            // Create action buttons
+            const buttonRow = new ActionRowBuilder<ButtonBuilder>()
+              .addComponents(
+                new ButtonBuilder()
+                  .setCustomId('back-button')
+                  .setLabel('Back')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('🔙'),
+                new ButtonBuilder()
+                  .setCustomId('confirm-selection')
+                  .setLabel('Confirm Selection')
+                  .setStyle(ButtonStyle.Primary)
+              );
+              
+            // Update selected roles display
+            const selectedRolesEmbed = new EmbedBuilder()
+              .setColor('#00ff00')
+              .setTitle('Currently Selected Roles')
+              .setDescription(
+                selectedRoleIds.length > 0
+                  ? selectedRoleIds
+                      .map(id => {
+                        const role = roles.get(id);
+                        return role 
+                          ? `• 🏷️ ${role.name}` 
+                          : `• Unknown role (${id})`;
+                      })
+                      .join('\n')
+                  : 'No roles selected yet. Select roles to keep from the dropdown menu.'
+              );
+            
+            // Create UI embeds
+            const updatedEmbeds = [
+              new EmbedBuilder()
+                .setColor('#0099ff')
+                .setTitle('Select roles to keep')
+                .setDescription(`Filter: ${getFilterName(currentFilter)}. Select roles you want to **KEEP**. All other roles will be deleted.`),
+              selectedRolesEmbed
+            ];
+            
+            // Add branded footer
+            addBrandedFooter(updatedEmbeds[0]);
+            
+            // Only show navigation if we have multiple pages
+            const components = filteredOptions.length > pageSize
+              ? [typeFilterRow, selectRow, navigationRow, buttonRow]
+              : [typeFilterRow, selectRow, buttonRow];
+            
+            // Update the UI with filtered roles
+            await i.update({
+              embeds: updatedEmbeds,
+              components: components,
             });
           }
         }

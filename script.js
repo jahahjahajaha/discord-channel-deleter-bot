@@ -14,17 +14,17 @@ document.addEventListener('DOMContentLoaded', function() {
   const themeToggle = document.getElementById('theme-toggle');
   const htmlElement = document.documentElement;
   
-  // Check for saved theme preference or respect OS preference
+  // Check for saved theme preference, default to dark theme
   const savedTheme = localStorage.getItem('theme');
   
   if (savedTheme) {
     htmlElement.setAttribute('data-theme', savedTheme);
     updateThemeIcon(savedTheme);
   } else {
-    // If no saved preference, check OS preference
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initialTheme = prefersDark ? 'dark' : 'light';
+    // If no saved preference, default to dark theme
+    const initialTheme = 'dark';
     htmlElement.setAttribute('data-theme', initialTheme);
+    localStorage.setItem('theme', initialTheme); // Save the default preference
     updateThemeIcon(initialTheme);
   }
   

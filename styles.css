@@ -18,12 +18,12 @@
   --primary-dark: #6975f3;
   --secondary: #43B581;
   --danger: #F04747;
-  --dark: #DCDDDE;
-  --darker: #202225;
-  --light: #36393F;
-  --gray: #B9BBBE;
-  --gray-light: #2F3136;
-  --gray-dark: #DCDDDE;
+  --dark: #DCDDDE;  /* Text color in dark mode */
+  --darker: #202225; /* Background color for footer, etc */
+  --light: #36393F; /* Main background color in dark mode */
+  --gray: #B9BBBE;  /* Secondary text color in dark mode */
+  --gray-light: #2F3136; /* Background for feature cards, etc */
+  --gray-dark: #DCDDDE; /* Used for text that needs to be lighter */
 }
 
 /* Dark Theme Overrides */
@@ -33,6 +33,104 @@
 
 [data-theme="dark"] .code-block {
   background-color: #18191c;
+}
+
+/* Additional Dark Theme Fixes */
+[data-theme="dark"] .github-link {
+  background-color: #5865F2;
+}
+
+[data-theme="dark"] .github-link:hover {
+  background-color: #6975f3;
+}
+
+[data-theme="dark"] .feature-card {
+  background-color: #2F3136;
+}
+
+[data-theme="dark"] .accordion-item {
+  background-color: #2F3136;
+}
+
+[data-theme="dark"] .tab-content {
+  color: #DCDDDE;
+}
+
+[data-theme="dark"] .setup-tabs {
+  background-color: #36393F;
+}
+
+[data-theme="dark"] .tab-btn.active, 
+[data-theme="dark"] .tab-btn:hover {
+  background-color: rgba(88, 101, 242, 0.2);
+}
+
+[data-theme="dark"] .hosting-option {
+  background-color: #2F3136;
+}
+
+[data-theme="dark"] .nav-links.active {
+  background-color: #36393F;
+}
+
+/* Fix contrast issues in dark theme */
+[data-theme="dark"] .accordion-header {
+  color: #DCDDDE;
+}
+
+[data-theme="dark"] .feature-card p,
+[data-theme="dark"] .step-content p,
+[data-theme="dark"] .accordion-content p {
+  color: #B9BBBE;
+}
+
+/* Add theme transition for smooth theme switching */
+body, header, .feature-card, .accordion-item, .github-link, 
+.hero, .how-it-works, .faq, .setup-tabs, .hosting-option,
+.accordion-header, .tab-btn, .social-link, footer {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Initial page load animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-content, .hero-image, .feature-card, .step, .accordion-item {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+.hero-content {
+  animation-delay: 0.1s;
+}
+
+.hero-image {
+  animation-delay: 0.3s;
+}
+
+.feature-card:nth-child(odd) {
+  animation-delay: 0.2s;
+}
+
+.feature-card:nth-child(even) {
+  animation-delay: 0.4s;
+}
+
+.step:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.step:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.step:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.step:nth-child(4) {
+  animation-delay: 0.4s;
 }
 
 * {
