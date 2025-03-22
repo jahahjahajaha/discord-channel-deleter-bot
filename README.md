@@ -110,7 +110,10 @@ The bot provides the following slash commands:
 
 - `/delete-channels` - Opens an interactive interface to select channels to keep, while all unselected channels will be deleted
 - `/delete-roles` - Opens an interactive interface to select roles to keep, while all unselected roles will be deleted
-- `/clear` - Clears recent messages from a channel with customizable filters for older/newer messages
+- `/clear` - Clears messages from a channel with powerful filtering options:
+  - `amount` - Number of messages to delete (1-100)
+  - `type` - Filter by message type (all, user messages only, or bot messages only)
+  - `from` - Delete messages only from a specific user
 
 ## 🔒 Security
 

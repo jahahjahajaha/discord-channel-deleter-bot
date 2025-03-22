@@ -481,7 +481,10 @@ export async function deleteRoles(
     let deletedCount = 0;
     let failedCount = 0;
 
-    // Delete roles one by one
+    // Delete roles one by one with improved error handling
+    let consecutiveFailures = 0;
+    const MAX_CONSECUTIVE_FAILURES = 5;
+    
     for (const [id, role] of rolesToDelete) {
       try {
         const roleName = role.name;
@@ -489,9 +492,14 @@ export async function deleteRoles(
         await logAction(guildId, 'INFO', `Deleting role: ${roleName} (${id})...`);
         await role.delete('Deleted by Discord Channel Deleter Bot');
         deletedCount++;
+        consecutiveFailures = 0; // Reset consecutive failures counter on success
         await logAction(guildId, 'SUCCESS', `Deleted role: ${roleName} (${id})`);
+        
+        // Add a small delay between deletions to prevent rate limiting
+        await new Promise(resolve => setTimeout(resolve, 500));
       } catch (error) {
         failedCount++;
+        consecutiveFailures++;
         const roleName = role.name;
         
         await logAction(
@@ -499,6 +507,14 @@ export async function deleteRoles(
           'ERROR', 
           `Failed to delete role ${roleName} (${id}): ${(error as Error).message}`
         );
+        
+        // If too many consecutive failures, add a longer delay but continue
+        if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+          console.log(`Too many consecutive failures (${consecutiveFailures}). Adding a delay before continuing...`);
+          await logAction(guildId, 'WARNING', `Adding a delay after ${consecutiveFailures} consecutive failures`);
+          await new Promise(resolve => setTimeout(resolve, 5000)); // 5 second delay
+          consecutiveFailures = 0; // Reset counter after delay
+        }
       }
     }
 
@@ -539,8 +555,11 @@ export async function deleteMessages(
   guildId: string,
   channelId: string,
   limit: number = 100,
+  messageType?: 'all' | 'user' | 'bot' | 'non-system',
+  userId?: string,
   olderThan?: Date,
-  newerThan?: Date
+  newerThan?: Date,
+  includePinned: boolean = true
 ): Promise<{ 
   success: boolean; 
   deletedCount: number;
@@ -568,15 +587,65 @@ export async function deleteMessages(
     // Fetch messages
     const messages = await (channel as TextChannel).messages.fetch({ limit });
     
-    // Filter messages by date if needed
+    // Filter messages by date, type, user and pinned status if needed
     let messagesToDelete = messages;
     
+    // Apply date filters
     if (olderThan || newerThan) {
-      messagesToDelete = messages.filter(msg => {
+      messagesToDelete = messagesToDelete.filter(msg => {
         if (olderThan && msg.createdAt >= olderThan) return false;
         if (newerThan && msg.createdAt <= newerThan) return false;
         return true;
       });
+    }
+    
+    // Apply message type filters
+    if (messageType && messageType !== 'all') {
+      let systemMessagesCount = 0;
+      
+      messagesToDelete = messagesToDelete.filter(msg => {
+        // Filter by bot messages
+        if (messageType === 'bot') return msg.author.bot;
+        // Filter by user messages
+        if (messageType === 'user') return !msg.author.bot;
+        // Filter out system messages (like join/leave, pins, etc)
+        if (messageType === 'non-system') {
+          const isSystemMessage = msg.type !== 0; // 0 is DEFAULT message type
+          if (isSystemMessage) {
+            systemMessagesCount++;
+          }
+          return !isSystemMessage;
+        }
+        return true;
+      });
+      
+      // Log if system messages were filtered out
+      if (messageType === 'non-system' && systemMessagesCount > 0) {
+        logAction(
+          guildId, 
+          'INFO', 
+          `Excluded ${systemMessagesCount} system messages from deletion`
+        );
+      }
+    }
+    
+    // Apply specific user filter
+    if (userId) {
+      messagesToDelete = messagesToDelete.filter(msg => msg.author.id === userId);
+    }
+    
+    // Filter out pinned messages if requested
+    if (!includePinned) {
+      const pinnedCount = messagesToDelete.filter(msg => msg.pinned).size;
+      messagesToDelete = messagesToDelete.filter(msg => !msg.pinned);
+      
+      if (pinnedCount > 0) {
+        await logAction(
+          guildId,
+          'INFO',
+          `Excluded ${pinnedCount} pinned messages from deletion`
+        );
+      }
     }
 
     // Filter out messages older than 14 days (Discord limitation for bulk delete)

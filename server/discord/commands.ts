@@ -3,7 +3,8 @@ import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
 import { 
   Client, 
-  CommandInteraction, 
+  CommandInteraction,
+  ChatInputCommandInteraction,
   PermissionFlagsBits,
   ActionRowBuilder,
   StringSelectMenuBuilder,
@@ -952,8 +953,9 @@ export const deleteRolesCommand = {
         ephemeral: true
       });
 
-      // Store selected role IDs
+      // Store selected role IDs and pagination variables
       let selectedRoleIds: string[] = [];
+      let currentPage = 0; // Track the current page for pagination
       
       // Create collector for component interactions
       const collector = response.createMessageComponentCollector({
@@ -1000,16 +1002,21 @@ export const deleteRolesCommand = {
             
             // Handle pagination for large servers
             // Discord limits select menus to 25 options, so we need to paginate
-            // Take only the first 25 options for now
-            const selectOptions = allSelectOptions.slice(0, 25);
+            const pageSize = 25;
+            const totalPages = Math.ceil(allSelectOptions.length / pageSize);
+            const startIdx = currentPage * pageSize;
+            const endIdx = Math.min(startIdx + pageSize, allSelectOptions.length);
+            
+            // Get options for current page
+            const pageOptions = allSelectOptions.slice(startIdx, endIdx);
             
             // Create a select menu
             const selectMenu = new StringSelectMenuBuilder()
               .setCustomId('select-roles')
-              .setPlaceholder(`Select roles to keep (1-25 of ${allSelectOptions.length})`)
+              .setPlaceholder(`Select roles to keep (${startIdx + 1}-${endIdx} of ${allSelectOptions.length})`)
               .setMinValues(0)
-              .setMaxValues(25)
-              .addOptions(selectOptions);
+              .setMaxValues(pageOptions.length)
+              .addOptions(pageOptions);
             
             // Selected roles display
             const selectedRolesEmbed = new EmbedBuilder()
@@ -1029,24 +1036,21 @@ export const deleteRolesCommand = {
               );
             
             // Create navigation buttons for pagination
-            let navigationRow = new ActionRowBuilder<ButtonBuilder>();
-            
-            // Only show navigation buttons if there are more than 25 roles
-            if (allSelectOptions.length > 25) {
-                navigationRow.addComponents(
-                    new ButtonBuilder()
-                        .setCustomId('prev-page')
-                        .setLabel('Previous Page')
-                        .setStyle(ButtonStyle.Secondary)
-                        .setEmoji('⬅️')
-                        .setDisabled(true), // Disabled on first page
-                    new ButtonBuilder()
-                        .setCustomId('next-page')
-                        .setLabel('Next Page')
-                        .setStyle(ButtonStyle.Secondary)
-                        .setEmoji('➡️')
-                );
-            }
+            const navigationRow = new ActionRowBuilder<ButtonBuilder>()
+              .addComponents(
+                new ButtonBuilder()
+                  .setCustomId('prev-page')
+                  .setLabel('Previous Page')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('⬅️')
+                  .setDisabled(currentPage === 0), // Disabled on first page
+                new ButtonBuilder()
+                  .setCustomId('next-page')
+                  .setLabel('Next Page')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('➡️')
+                  .setDisabled(currentPage === totalPages - 1 || totalPages === 0)
+              );
             
             // Create action buttons
             const buttonRow = new ActionRowBuilder<ButtonBuilder>()
@@ -1200,6 +1204,113 @@ export const deleteRolesCommand = {
             // Stop collector
             collector.stop();
           }
+          else if (i.customId === 'next-page' || i.customId === 'prev-page') {
+            // Handle pagination for role selection
+            if (i.customId === 'next-page') {
+              currentPage++;
+            } else if (i.customId === 'prev-page') {
+              currentPage--;
+            }
+            
+            // Create all select menu options
+            const allSelectOptions = sortedRoles.map(role => {
+              return new StringSelectMenuOptionBuilder()
+                .setLabel(role.name)
+                .setDescription(`Position: ${role.position}`)
+                .setValue(role.id)
+                .setEmoji('🏷️');
+            });
+            
+            // Calculate page info
+            const pageSize = 25;
+            const totalPages = Math.ceil(allSelectOptions.length / pageSize);
+            const startIdx = currentPage * pageSize;
+            const endIdx = Math.min(startIdx + pageSize, allSelectOptions.length);
+            
+            // Get options for current page
+            const pageOptions = allSelectOptions.slice(startIdx, endIdx);
+            
+            // Create a select menu with current page options
+            const selectMenu = new StringSelectMenuBuilder()
+              .setCustomId('select-roles')
+              .setPlaceholder(`Select roles to keep (${startIdx + 1}-${endIdx} of ${allSelectOptions.length}, ${selectedRoleIds.length} selected)`)
+              .setMinValues(0)
+              .setMaxValues(pageOptions.length)
+              .addOptions(pageOptions);
+            
+            // Create navigation buttons with appropriate disabled state
+            const navigationRow = new ActionRowBuilder<ButtonBuilder>()
+              .addComponents(
+                new ButtonBuilder()
+                  .setCustomId('prev-page')
+                  .setLabel('Previous Page')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('⬅️')
+                  .setDisabled(currentPage === 0),
+                new ButtonBuilder()
+                  .setCustomId('next-page')
+                  .setLabel('Next Page')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('➡️')
+                  .setDisabled(currentPage === totalPages - 1 || totalPages === 0)
+              );
+            
+            // Create select row
+            const selectRow = new ActionRowBuilder<StringSelectMenuBuilder>()
+              .addComponents(selectMenu);
+            
+            // Create action buttons
+            const buttonRow = new ActionRowBuilder<ButtonBuilder>()
+              .addComponents(
+                new ButtonBuilder()
+                  .setCustomId('back-button')
+                  .setLabel('Back')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('🔙'),
+                new ButtonBuilder()
+                  .setCustomId('confirm-selection')
+                  .setLabel('Confirm Selection')
+                  .setStyle(ButtonStyle.Primary)
+              );
+            
+            // Update selected roles display
+            const selectedRolesEmbed = new EmbedBuilder()
+              .setColor('#00ff00')
+              .setTitle('Currently Selected Roles')
+              .setDescription(
+                selectedRoleIds.length > 0
+                  ? selectedRoleIds
+                      .map(id => {
+                        const role = roles.get(id);
+                        return role 
+                          ? `• 🏷️ ${role.name}` 
+                          : `• Unknown role (${id})`;
+                      })
+                      .join('\n')
+                  : 'No roles selected yet. Select roles to keep from the dropdown menu.'
+              );
+            
+            // Get the main embed from existing message
+            const mainEmbed = i.message.embeds[0];
+            
+            // Create embeds
+            const updatedEmbeds = [
+              new EmbedBuilder()
+                .setColor(mainEmbed.color || '#0099ff')
+                .setTitle(mainEmbed.title || 'Select roles to keep')
+                .setDescription(mainEmbed.description || 'Select roles from the dropdown menu that you want to KEEP. All other roles will be deleted.'),
+              selectedRolesEmbed
+            ];
+            
+            // Add branded footer
+            addBrandedFooter(updatedEmbeds[0]);
+            
+            // Update the UI with new page
+            await i.update({
+              embeds: updatedEmbeds,
+              components: [selectRow, navigationRow, buttonRow],
+            });
+          }
         }
         else if (i.isStringSelectMenu()) {
           if (i.customId === 'select-roles') {
@@ -1280,6 +1391,30 @@ export const clearMessagesCommand = {
         .setRequired(true)
         .setMinValue(1)
         .setMaxValue(100)
+    )
+    .addStringOption(option =>
+      option
+        .setName('type')
+        .setDescription('Type of messages to delete')
+        .setRequired(false)
+        .addChoices(
+          { name: 'All Messages', value: 'all' },
+          { name: 'User Messages Only', value: 'user' },
+          { name: 'Bot Messages Only', value: 'bot' },
+          { name: 'Except System Messages', value: 'non-system' }
+        )
+    )
+    .addUserOption(option =>
+      option
+        .setName('from')
+        .setDescription('Delete messages only from this user')
+        .setRequired(false)
+    )
+    .addBooleanOption(option =>
+      option
+        .setName('include_pinned')
+        .setDescription('Include pinned messages in deletion')
+        .setRequired(false)
     ),
   async execute(interaction: CommandInteraction, client: Client) {
     // Check if the user has ManageMessages permission
@@ -1312,25 +1447,85 @@ export const clearMessagesCommand = {
     }
 
     try {
-      // Get the amount option
-      const amount = (interaction as any).options.getInteger('amount', true);
+      // Get the options
+      const options = interaction as ChatInputCommandInteraction;
+      const amount = options.options.getInteger('amount', true);
+      const messageType = options.options.getString('type') as 'all' | 'user' | 'bot' | 'non-system' || 'all';
+      const userOption = options.options.getUser('from');
+      const userId = userOption?.id;
+      const includePinned = options.options.getBoolean('include_pinned') ?? false;
+      
+      // Construct confirmation message based on filters
+      let confirmationMessage = `Processing... Deleting ${amount} messages`;
+      
+      if (messageType && messageType !== 'all') {
+        if (messageType === 'bot') {
+          confirmationMessage += ` (bot messages only)`;
+        } else if (messageType === 'user') {
+          confirmationMessage += ` (user messages only)`;
+        } else if (messageType === 'non-system') {
+          confirmationMessage += ` (excluding system messages)`;
+        }
+      }
+      
+      if (userId) {
+        confirmationMessage += ` from user ${userOption?.tag || userId}`;
+      }
+      
+      if (!includePinned) {
+        confirmationMessage += ` (excluding pinned messages)`;
+      }
+      
+      confirmationMessage += '.';
       
       // Show processing message
       await interaction.reply({
-        content: `Processing... Deleting ${amount} messages.`,
+        content: confirmationMessage,
         ephemeral: true
       });
       
-      // Call the deleteMessages function
-      const result = await deleteMessages(guildId, channelId, amount);
+      // Call the deleteMessages function with filters
+      const result = await deleteMessages(
+        guildId, 
+        channelId, 
+        amount, 
+        messageType, 
+        userId,
+        undefined,
+        undefined,
+        includePinned
+      );
+      
+      // Build result message with filter details
+      let resultMessage = result.success 
+        ? `Successfully deleted ${result.deletedCount} messages` 
+        : `Failed to delete messages: ${result.error}`;
+        
+      if (messageType && messageType !== 'all') {
+        if (messageType === 'bot') {
+          resultMessage += ` (bot messages only)`;
+        } else if (messageType === 'user') {
+          resultMessage += ` (user messages only)`;
+        } else if (messageType === 'non-system') {
+          resultMessage += ` (excluding system messages)`;
+        }
+      }
+      
+      if (userId) {
+        resultMessage += ` from user ${userOption?.tag || userId}`;
+      }
+      
+      if (!includePinned) {
+        resultMessage += ` (pinned messages were preserved)`;
+      }
       
       if (result.success) {
         await interaction.editReply({
-          content: `Successfully deleted ${result.deletedCount} messages.`,
+          content: resultMessage + '.',
         });
       } else {
         await interaction.editReply({
-          content: `Failed to delete messages: ${result.error}`,
+          content: resultMessage,
         });
       }
     } catch (error) {
