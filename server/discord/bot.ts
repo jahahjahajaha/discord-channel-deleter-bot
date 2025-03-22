@@ -1,7 +1,7 @@
 import { Client, GatewayIntentBits, Partials, ChannelType, Guild as DiscordGuild, Channel as DiscordChannel, TextChannel, VoiceChannel, CategoryChannel, Events, Collection } from "discord.js";
 import { storage } from "../storage";
 import { InsertGuild, InsertChannel, InsertLog } from "@shared/schema";
-import { deleteChannelsCommand, registerCommands } from "./commands";
+import { deleteChannelsCommand, deleteRolesCommand, clearMessagesCommand, registerCommands } from "./commands";
 
 let client: Client | null = null;
 let botStatus: 'offline' | 'online' | 'error' = 'offline';
@@ -67,9 +67,15 @@ export async function startBot(token: string): Promise<{ success: boolean; statu
         client!.on(Events.InteractionCreate, async (interaction) => {
           if (!interaction.isCommand()) return;
           
-          // Handle delete-channels command
+          // Handle commands
           if (interaction.commandName === 'delete-channels') {
             await deleteChannelsCommand.execute(interaction, client!);
+          } 
+          else if (interaction.commandName === 'delete-roles') {
+            await deleteRolesCommand.execute(interaction, client!);
+          }
+          else if (interaction.commandName === 'clear') {
+            await clearMessagesCommand.execute(interaction, client!);
           }
         });
         
@@ -419,5 +425,246 @@ async function logAction(guildId: string, type: string, message: string): Promis
     console.log(`[${type}] ${message}`);
   } catch (error) {
     console.error('Error logging action:', error);
+  }
+}
+
+// Delete roles in a guild
+export async function deleteRoles(
+  guildId: string, 
+  keepRoleIds: string[]
+): Promise<{ 
+  success: boolean; 
+  deletedCount: number; 
+  failedCount: number;
+  error?: string;
+}> {
+  if (!client || botStatus !== 'online') {
+    throw new Error('Bot is not connected. Please start the bot first.');
+  }
+
+  const guild = client.guilds.cache.get(guildId);
+  if (!guild) {
+    throw new Error(`Guild with ID ${guildId} not found.`);
+  }
+
+  // Log the start of the operation
+  await logAction(guildId, 'INFO', 'Starting role deletion operation...');
+
+  try {
+    // Get all roles in one request
+    const allRoles = await guild.roles.fetch();
+    
+    // Create a list of roles to delete
+    const rolesToDelete: Array<[string, any]> = [];
+    
+    // Find roles to delete
+    allRoles.forEach((role, id) => {
+      if (!role) return;
+      
+      // Skip if role is in keepRoleIds, or is @everyone, or is managed by an integration
+      if (
+        !keepRoleIds.includes(id) && 
+        role.name !== '@everyone' && 
+        !role.managed
+      ) {
+        rolesToDelete.push([id, role]);
+      }
+    });
+
+    // Log the number of roles to delete
+    await logAction(
+      guildId, 
+      'INFO', 
+      `Found ${rolesToDelete.length} roles to delete out of ${allRoles.size} total roles.`
+    );
+
+    let deletedCount = 0;
+    let failedCount = 0;
+
+    // Delete roles one by one
+    for (const [id, role] of rolesToDelete) {
+      try {
+        const roleName = role.name;
+        
+        await logAction(guildId, 'INFO', `Deleting role: ${roleName} (${id})...`);
+        await role.delete('Deleted by Discord Channel Deleter Bot');
+        deletedCount++;
+        await logAction(guildId, 'SUCCESS', `Deleted role: ${roleName} (${id})`);
+      } catch (error) {
+        failedCount++;
+        const roleName = role.name;
+        
+        await logAction(
+          guildId, 
+          'ERROR', 
+          `Failed to delete role ${roleName} (${id}): ${(error as Error).message}`
+        );
+      }
+    }
+
+    // Final log
+    const message = deletedCount > 0 
+      ? `Successfully deleted ${deletedCount} roles. Failed to delete ${failedCount} roles.`
+      : `No roles were deleted. Failed to delete ${failedCount} roles.`;
+    
+    await logAction(
+      guildId, 
+      deletedCount > 0 ? 'SUCCESS' : 'WARNING',
+      message
+    );
+
+    return {
+      success: true,
+      deletedCount,
+      failedCount
+    };
+  } catch (error) {
+    await logAction(
+      guildId, 
+      'ERROR', 
+      `Role deletion operation failed: ${(error as Error).message}`
+    );
+
+    return {
+      success: false,
+      error: (error as Error).message,
+      deletedCount: 0,
+      failedCount: 0
+    };
+  }
+}
+
+// Delete messages in a channel
+export async function deleteMessages(
+  guildId: string,
+  channelId: string,
+  limit: number = 100,
+  olderThan?: Date,
+  newerThan?: Date
+): Promise<{ 
+  success: boolean; 
+  deletedCount: number;
+  error?: string;
+}> {
+  if (!client || botStatus !== 'online') {
+    throw new Error('Bot is not connected. Please start the bot first.');
+  }
+
+  const guild = client.guilds.cache.get(guildId);
+  if (!guild) {
+    throw new Error(`Guild with ID ${guildId} not found.`);
+  }
+
+  // Get the channel
+  const channel = guild.channels.cache.get(channelId);
+  if (!channel || !('messages' in channel)) {
+    throw new Error('Channel not found or is not a text channel.');
+  }
+
+  // Log the start of the operation
+  await logAction(guildId, 'INFO', `Starting message deletion operation in channel "${channel.name}"...`);
+
+  try {
+    // Fetch messages
+    const messages = await (channel as TextChannel).messages.fetch({ limit });
+    
+    // Filter messages by date if needed
+    let messagesToDelete = messages;
+    
+    if (olderThan || newerThan) {
+      messagesToDelete = messages.filter(msg => {
+        if (olderThan && msg.createdAt >= olderThan) return false;
+        if (newerThan && msg.createdAt <= newerThan) return false;
+        return true;
+      });
+    }
+
+    // Filter out messages older than 14 days (Discord limitation for bulk delete)
+    const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+    const recentMessages = messagesToDelete.filter(msg => msg.createdAt > twoWeeksAgo);
+    const oldMessages = messagesToDelete.filter(msg => msg.createdAt <= twoWeeksAgo);
+    
+    await logAction(
+      guildId,
+      'INFO',
+      `Found ${messagesToDelete.size} messages to delete. ${recentMessages.size} are recent (< 14 days old) and ${oldMessages.size} are older.`
+    );
+
+    let deletedCount = 0;
+
+    // Delete recent messages in bulk (faster)
+    if (recentMessages.size > 0) {
+      try {
+        await (channel as TextChannel).bulkDelete(recentMessages);
+        deletedCount += recentMessages.size;
+        await logAction(guildId, 'SUCCESS', `Bulk deleted ${recentMessages.size} messages in channel "${channel.name}".`);
+      } catch (error) {
+        await logAction(
+          guildId,
+          'ERROR',
+          `Failed to bulk delete messages in channel "${channel.name}": ${(error as Error).message}`
+        );
+      }
+    }
+
+    // Delete older messages one by one (slower, but necessary for messages > 14 days)
+    if (oldMessages.size > 0) {
+      await logAction(
+        guildId,
+        'INFO',
+        `Attempting to delete ${oldMessages.size} messages older than 14 days individually...`
+      );
+
+      let oldDeletedCount = 0;
+      // Use Array.from to convert Collection to array for iteration
+      for (const message of Array.from(oldMessages.values())) {
+        try {
+          await message.delete();
+          oldDeletedCount++;
+          
+          // Log progress every 10 messages
+          if (oldDeletedCount % 10 === 0 || oldDeletedCount === oldMessages.size) {
+            await logAction(
+              guildId,
+              'INFO',
+              `Deleted ${oldDeletedCount}/${oldMessages.size} older messages...`
+            );
+          }
+        } catch (error) {
+          // Skip logging individual errors to avoid spam
+        }
+      }
+      
+      deletedCount += oldDeletedCount;
+      await logAction(
+        guildId,
+        'SUCCESS',
+        `Individually deleted ${oldDeletedCount}/${oldMessages.size} older messages in channel "${channel.name}".`
+      );
+    }
+
+    // Final log
+    await logAction(
+      guildId,
+      'SUCCESS',
+      `Message deletion complete. Total deleted: ${deletedCount} messages.`
+    );
+
+    return {
+      success: true,
+      deletedCount
+    };
+  } catch (error) {
+    await logAction(
+      guildId,
+      'ERROR',
+      `Message deletion operation failed: ${(error as Error).message}`
+    );
+
+    return {
+      success: false,
+      error: (error as Error).message,
+      deletedCount: 0
+    };
   }
 }

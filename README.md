@@ -31,13 +31,15 @@
 ### Key Features
 
 - 🗑️ **Bulk Channel Deletion** - Select which channels to keep and delete the rest in one operation, perfect for server cleanup
+- 👑 **Role Cleanup** - Select which roles to keep and delete all others to streamline server permissions
+- ✏️ **Message Clearing** - Quickly clear up to 100 messages at once from any channel with proper permission checks
 - 📋 **Multi-Type Support** - Works with all channel types including text, voice, categories, forums, and announcements
-- 🔄 **Persistent Selections** - Channel selections are saved as you work and persist between navigation
+- 🔄 **Persistent Selections** - Selections are saved as you work and persist between navigation
 - 📱 **Mobile Compatible** - Works perfectly on Discord mobile - manage your server from anywhere
 - 👥 **Administrator Only** - Commands are restricted to users with administrator permissions for security
-- 🚀 **Optimized Performance** - Fast operations even on servers with hundreds of channels
-- 📊 **Activity Logging** - Detailed operation logs to track all channel management activities
-- 🌈 **Intuitive UI** - User-friendly interface with clear visual indicators and type filtering
+- 🚀 **Optimized Performance** - Fast operations even on servers with hundreds of channels or roles
+- 📊 **Activity Logging** - Detailed operation logs to track all management activities
+- 🌈 **Intuitive UI** - User-friendly interface with clear visual indicators and filtering options
 
 ## 📸 Screenshots
 
@@ -96,15 +98,19 @@ npm run dev
 2. Select your application and navigate to the "OAuth2" tab
 3. Under "Scopes" select "bot" and under "Bot Permissions" select:
    - Manage Channels
+   - Manage Roles
    - Read Messages/View Channels
    - Send Messages
+   - Manage Messages
 4. Copy the generated URL and open it in your browser to add the bot to your server
 
 ### Using the Bot Commands
 
-The bot provides a slash command:
+The bot provides the following slash commands:
 
 - `/delete-channels` - Opens an interactive interface to select channels to keep, while all unselected channels will be deleted
+- `/delete-roles` - Opens an interactive interface to select roles to keep, while all unselected roles will be deleted
+- `/clear` - Clears recent messages from a channel with customizable filters for older/newer messages
 
 ## 🔒 Security
 
@@ -198,6 +204,9 @@ Absolutely! The code is open-source and can be modified to suit your needs.
 
 ### How many channels can the bot manage?
 The bot is designed to handle servers with hundreds of channels efficiently.
+
+### What can I do if the bot is offline?
+If the bot appears offline, you can deploy your own instance using the setup instructions in this README. The bot is designed to run on any Node.js hosting platform including Replit, Railway, or your own server.
 
 ## 📝 License
 

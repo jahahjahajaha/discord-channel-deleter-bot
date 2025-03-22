@@ -12,6 +12,29 @@
   --gray-dark: #2C2F33;
 }
 
+/* Dark Theme Variables */
+[data-theme="dark"] {
+  --primary: #5865F2;
+  --primary-dark: #6975f3;
+  --secondary: #43B581;
+  --danger: #F04747;
+  --dark: #DCDDDE;
+  --darker: #202225;
+  --light: #36393F;
+  --gray: #B9BBBE;
+  --gray-light: #2F3136;
+  --gray-dark: #DCDDDE;
+}
+
+/* Dark Theme Overrides */
+[data-theme="dark"] .hero {
+  background: linear-gradient(135deg, #2c2f33 0%, #202225 100%);
+}
+
+[data-theme="dark"] .code-block {
+  background-color: #18191c;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -207,6 +230,27 @@ nav {
 .github-link:hover {
   background-color: var(--gray-dark);
   transform: translateY(-2px);
+}
+
+.theme-toggle {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--dark);
+  transition: all 0.3s ease;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.theme-toggle:hover {
+  color: var(--primary);
+  transform: rotate(15deg);
+  background-color: rgba(88, 101, 242, 0.1);
 }
 
 .hamburger {

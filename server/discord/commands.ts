@@ -18,7 +18,7 @@ import {
   Collection
 } from 'discord.js';
 import { ChannelType } from 'discord-api-types/v10';
-import { deleteChannels, getKnarlixAvatarURL } from './bot';
+import { deleteChannels, deleteRoles, deleteMessages, getKnarlixAvatarURL } from './bot';
 
 // Define the delete-channels slash command
 export const deleteChannelsCommand = {
@@ -866,6 +866,491 @@ function getFilterName(filter: string): string {
   }
 }
 
+// Define the delete-roles slash command
+export const deleteRolesCommand = {
+  data: new SlashCommandBuilder()
+    .setName('delete-roles')
+    .setDescription('Delete all roles except for the ones you want to keep')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+  async execute(interaction: CommandInteraction, client: Client) {
+    // Check if the user has Administrator permission
+    if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
+      await interaction.reply({
+        content: 'You do not have permission to use this command. Administrator permission is required.',
+        ephemeral: true
+      });
+      return;
+    }
+
+    // Get the guild ID
+    const guildId = interaction.guildId;
+    if (!guildId) {
+      await interaction.reply({
+        content: 'This command can only be used in a server.',
+        ephemeral: true
+      });
+      return;
+    }
+
+    // Get the guild
+    const guild = client.guilds.cache.get(guildId);
+    if (!guild) {
+      await interaction.reply({
+        content: 'Failed to find the server.',
+        ephemeral: true
+      });
+      return;
+    }
+
+    try {
+      // Fetch all roles
+      const roles = await guild.roles.fetch();
+
+      // Filter out @everyone role and managed roles (bot roles, integration roles)
+      const selectableRoles = roles.filter(role => 
+        role !== null && 
+        role.name !== '@everyone' &&
+        !role.managed
+      );
+
+      // Sort roles by position (higher position first, as it's more important)
+      const sortedRoles = Array.from(selectableRoles.values()).sort((a, b) => {
+        return b.position - a.position;
+      });
+
+      // Create an embed for the selection interface
+      const embed = new EmbedBuilder()
+        .setColor('#0099ff')
+        .setTitle('Role Cleanup')
+        .setDescription('Select roles to **KEEP** from the dropdown menu. All other roles will be deleted.')
+        .addFields(
+          { name: 'WARNING', value: 'This action cannot be undone! Be careful when selecting roles to keep.' },
+          { name: 'Instructions', value: 'Select multiple roles from the dropdown menu.' }
+        );
+      
+      addBrandedFooter(embed);
+
+      // Create action buttons
+      const selectButton = new ButtonBuilder()
+        .setCustomId('select-complete')
+        .setLabel('Continue')
+        .setStyle(ButtonStyle.Primary);
+      
+      const cancelButton = new ButtonBuilder()
+        .setCustomId('cancel-delete')
+        .setLabel('Cancel')
+        .setStyle(ButtonStyle.Secondary);
+
+      // Create the action row for buttons
+      const buttonRow = new ActionRowBuilder<ButtonBuilder>()
+        .addComponents(cancelButton, selectButton);
+
+      // Send the initial embed
+      const response = await interaction.reply({
+        embeds: [embed],
+        components: [buttonRow],
+        ephemeral: true
+      });
+
+      // Store selected role IDs
+      let selectedRoleIds: string[] = [];
+      
+      // Create collector for component interactions
+      const collector = response.createMessageComponentCollector({
+        time: 300000 // 5 minutes timeout
+      });
+
+      // Handle interactions
+      collector.on('collect', async (i) => {
+        if (i.isButton()) {
+          if (i.customId === 'cancel-delete') {
+            // Cancel the operation
+            const cancelEmbed = new EmbedBuilder()
+              .setColor('#888888')
+              .setTitle('Operation Cancelled')
+              .setDescription('Role deletion has been cancelled.');
+            
+            addBrandedFooter(cancelEmbed);
+            
+            await i.update({
+              embeds: [cancelEmbed],
+              components: [],
+            });
+            
+            // Stop collector
+            collector.stop();
+          } 
+          else if (i.customId === 'select-complete') {
+            // Show role selection UI with dropdown menu
+            const selectionEmbed = new EmbedBuilder()
+              .setColor('#0099ff')
+              .setTitle('Select roles to keep')
+              .setDescription('Select roles from the dropdown menu that you want to **KEEP**. All other roles will be deleted.');
+              
+            addBrandedFooter(selectionEmbed);
+            
+            // Create select menu options for roles
+            const allSelectOptions = sortedRoles.map(role => {
+              return new StringSelectMenuOptionBuilder()
+                .setLabel(role.name)
+                .setDescription(`Position: ${role.position}`)
+                .setValue(role.id)
+                .setEmoji('🏷️');
+            });
+            
+            // Handle pagination for large servers
+            // Discord limits select menus to 25 options, so we need to paginate
+            // Take only the first 25 options for now
+            const selectOptions = allSelectOptions.slice(0, 25);
+            
+            // Create a select menu
+            const selectMenu = new StringSelectMenuBuilder()
+              .setCustomId('select-roles')
+              .setPlaceholder(`Select roles to keep (1-25 of ${allSelectOptions.length})`)
+              .setMinValues(0)
+              .setMaxValues(25)
+              .addOptions(selectOptions);
+            
+            // Selected roles display
+            const selectedRolesEmbed = new EmbedBuilder()
+              .setColor('#00ff00')
+              .setTitle('Currently Selected Roles')
+              .setDescription(
+                selectedRoleIds.length > 0
+                  ? selectedRoleIds
+                      .map(id => {
+                        const role = roles.get(id);
+                        return role 
+                          ? `• 🏷️ ${role.name}` 
+                          : `• Unknown role (${id})`;
+                      })
+                      .join('\n')
+                  : 'No roles selected yet. Select roles to keep from the dropdown menu.'
+              );
+            
+            // Create navigation buttons for pagination
+            let navigationRow = new ActionRowBuilder<ButtonBuilder>();
+            
+            // Only show navigation buttons if there are more than 25 roles
+            if (allSelectOptions.length > 25) {
+                navigationRow.addComponents(
+                    new ButtonBuilder()
+                        .setCustomId('prev-page')
+                        .setLabel('Previous Page')
+                        .setStyle(ButtonStyle.Secondary)
+                        .setEmoji('⬅️')
+                        .setDisabled(true), // Disabled on first page
+                    new ButtonBuilder()
+                        .setCustomId('next-page')
+                        .setLabel('Next Page')
+                        .setStyle(ButtonStyle.Secondary)
+                        .setEmoji('➡️')
+                );
+            }
+            
+            // Create action buttons
+            const buttonRow = new ActionRowBuilder<ButtonBuilder>()
+              .addComponents(
+                new ButtonBuilder()
+                  .setCustomId('back-button')
+                  .setLabel('Back')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('🔙'),
+                new ButtonBuilder()
+                  .setCustomId('confirm-selection')
+                  .setLabel('Confirm Selection')
+                  .setStyle(ButtonStyle.Primary)
+              );
+            
+            // Create select row
+            const selectRow = new ActionRowBuilder<StringSelectMenuBuilder>()
+              .addComponents(selectMenu);
+            
+            // Update the message with role selection UI and add pagination if needed
+            const components = allSelectOptions.length > 25 
+                ? [selectRow, navigationRow, buttonRow] 
+                : [selectRow, buttonRow];
+                
+            await i.update({
+              embeds: [selectionEmbed, selectedRolesEmbed],
+              components: components,
+            });
+          }
+          else if (i.customId === 'back-button') {
+            // Go back to main menu
+            await i.update({
+              embeds: [embed],
+              components: [buttonRow],
+            });
+          }
+          else if (i.customId === 'confirm-selection') {
+            // Show confirmation dialog
+            const confirmationEmbed = new EmbedBuilder()
+              .setColor('#ff0000')
+              .setTitle('⚠️ Final Confirmation Required ⚠️')
+              .setDescription(`Are you absolutely sure you want to delete all roles except the ${selectedRoleIds.length} selected ones?`)
+              .addFields(
+                { 
+                  name: 'Roles to Keep', 
+                  value: selectedRoleIds.map(id => {
+                    const role = roles.get(id);
+                    return role ? `• 🏷️ ${role.name}` : `• Unknown role (${id})`;
+                  }).join('\n') || 'None selected - all roles will be deleted!'
+                },
+                {
+                  name: 'Roles to Delete',
+                  value: Array.from(roles.values())
+                    .filter(role => 
+                      role && 
+                      !selectedRoleIds.includes(role.id) && 
+                      role.name !== '@everyone' && 
+                      !role.managed
+                    )
+                    .slice(0, 15) // Show only first 15 to prevent message being too long
+                    .map(role => `• 🏷️ ${role.name}`)
+                    .join('\n') + (roles.size - selectedRoleIds.length - 1 > 15 ? '\n• ... and more' : '') // -1 for @everyone
+                }
+              );
+              
+              addBrandedFooter(confirmationEmbed);
+            
+            // Create final confirmation buttons
+            const finalConfirmButton = new ButtonBuilder()
+              .setCustomId('final-confirm')
+              .setLabel('Yes, Delete Roles')
+              .setStyle(ButtonStyle.Danger);
+            
+            const finalCancelButton = new ButtonBuilder()
+              .setCustomId('final-cancel')
+              .setLabel('No, Cancel')
+              .setStyle(ButtonStyle.Secondary);
+            
+            const finalButtonRow = new ActionRowBuilder<ButtonBuilder>()
+              .addComponents(finalCancelButton, finalConfirmButton);
+            
+            await i.update({
+              embeds: [confirmationEmbed],
+              components: [finalButtonRow],
+            });
+          }
+          else if (i.customId === 'final-confirm') {
+            // Execute the deletion
+            await i.update({
+              embeds: [
+                (() => {
+                  const processingEmbed = new EmbedBuilder()
+                    .setColor('#ffa500')
+                    .setTitle('Processing')
+                    .setDescription('Deleting roles... Please wait.');
+                  return addBrandedFooter(processingEmbed);
+                })()
+              ],
+              components: [],
+            });
+            
+            try {
+              // Call the deleteRoles function
+              const result = await deleteRoles(guildId, selectedRoleIds);
+              
+              // Show results
+              const resultEmbed = new EmbedBuilder()
+                .setColor(result.success ? '#00ff00' : '#ff0000')
+                .setTitle(result.success ? 'Operation Completed' : 'Operation Failed')
+                .setDescription(
+                  result.success
+                    ? `Successfully deleted ${result.deletedCount} roles. Failed to delete ${result.failedCount} roles.`
+                    : `Failed to delete roles: ${result.error}`
+                );
+                
+              addBrandedFooter(resultEmbed);
+              
+              await i.editReply({
+                embeds: [resultEmbed],
+                components: [],
+              });
+            } catch (error) {
+              // Handle errors
+              const errorEmbed = new EmbedBuilder()
+                .setColor('#ff0000')
+                .setTitle('Error')
+                .setDescription(`An error occurred: ${(error as Error).message}`);
+                
+              addBrandedFooter(errorEmbed);
+              
+              await i.editReply({
+                embeds: [errorEmbed],
+                components: [],
+              });
+            }
+          }
+          else if (i.customId === 'final-cancel') {
+            // Cancel the deletion
+            const cancelEmbed = new EmbedBuilder()
+              .setColor('#888888')
+              .setTitle('Operation Cancelled')
+              .setDescription('Role deletion has been cancelled.');
+            
+            addBrandedFooter(cancelEmbed);
+            
+            await i.update({
+              embeds: [cancelEmbed],
+              components: [],
+            });
+            
+            // Stop collector
+            collector.stop();
+          }
+        }
+        else if (i.isStringSelectMenu()) {
+          if (i.customId === 'select-roles') {
+            // Update selected roles
+            selectedRoleIds = i.values;
+            
+            // Get current embeds and components
+            const currentComponents = Array.from(i.message.components);
+            
+            // Update the selected roles embed
+            const selectedRolesEmbed = new EmbedBuilder()
+              .setColor('#00ff00')
+              .setTitle('Currently Selected Roles')
+              .setDescription(
+                selectedRoleIds.length > 0
+                  ? selectedRoleIds
+                      .map(id => {
+                        const role = roles.get(id);
+                        return role 
+                          ? `• 🏷️ ${role.name}` 
+                          : `• Unknown role (${id})`;
+                      })
+                      .join('\n')
+                  : 'No roles selected yet. Select roles to keep from the dropdown menu.'
+              );
+            
+            // Keep main embed, update selected roles embed
+            await i.update({
+              embeds: [i.message.embeds[0], selectedRolesEmbed],
+              components: currentComponents,
+            });
+          }
+        }
+      });
+      
+      // Handle collector end event
+      collector.on('end', async (collected, reason) => {
+        if (reason === 'time') {
+          // If collector ends due to timeout
+          const timeoutEmbed = new EmbedBuilder()
+            .setColor('#888888')
+            .setTitle('Operation Timed Out')
+            .setDescription('Role deletion has been cancelled due to inactivity.');
+          
+          addBrandedFooter(timeoutEmbed);
+          
+          try {
+            await interaction.editReply({
+              embeds: [timeoutEmbed],
+              components: [],
+            });
+          } catch (error) {
+            // Silently fail if we can't update the message
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error in delete-roles command:', error);
+      
+      await interaction.reply({
+        content: `An error occurred: ${(error as Error).message}`,
+        ephemeral: true
+      });
+    }
+  }
+};
+
+// Define the clear-messages slash command
+export const clearMessagesCommand = {
+  data: new SlashCommandBuilder()
+    .setName('clear')
+    .setDescription('Delete multiple messages from a channel at once')
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
+    .addIntegerOption(option => 
+      option
+        .setName('amount')
+        .setDescription('Number of messages to delete (max 100)')
+        .setRequired(true)
+        .setMinValue(1)
+        .setMaxValue(100)
+    ),
+  async execute(interaction: CommandInteraction, client: Client) {
+    // Check if the user has ManageMessages permission
+    if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageMessages)) {
+      await interaction.reply({
+        content: 'You do not have permission to use this command. Manage Messages permission is required.',
+        ephemeral: true
+      });
+      return;
+    }
+
+    // Get the guild ID
+    const guildId = interaction.guildId;
+    if (!guildId) {
+      await interaction.reply({
+        content: 'This command can only be used in a server.',
+        ephemeral: true
+      });
+      return;
+    }
+
+    // Get the channel ID
+    const channelId = interaction.channelId;
+    if (!channelId) {
+      await interaction.reply({
+        content: 'Failed to determine the channel.',
+        ephemeral: true
+      });
+      return;
+    }
+
+    try {
+      // Get the amount option
+      const amount = (interaction as any).options.getInteger('amount', true);
+      
+      // Show processing message
+      await interaction.reply({
+        content: `Processing... Deleting ${amount} messages.`,
+        ephemeral: true
+      });
+      
+      // Call the deleteMessages function
+      const result = await deleteMessages(guildId, channelId, amount);
+      
+      if (result.success) {
+        await interaction.editReply({
+          content: `Successfully deleted ${result.deletedCount} messages.`,
+        });
+      } else {
+        await interaction.editReply({
+          content: `Failed to delete messages: ${result.error}`,
+        });
+      }
+    } catch (error) {
+      console.error('Error in clear-messages command:', error);
+      
+      // If we already replied, edit. Otherwise, reply.
+      if (interaction.replied) {
+        await interaction.editReply({
+          content: `An error occurred: ${(error as Error).message}`,
+        });
+      } else {
+        await interaction.reply({
+          content: `An error occurred: ${(error as Error).message}`,
+          ephemeral: true
+        });
+      }
+    }
+  }
+};
+
 // Helper function to add branded footer to embeds
 function addBrandedFooter(embed: EmbedBuilder): EmbedBuilder {
   return embed.setFooter({
@@ -876,7 +1361,11 @@ function addBrandedFooter(embed: EmbedBuilder): EmbedBuilder {
 
 // Register slash commands with Discord
 export async function registerCommands(client: Client, token: string) {
-  const commands = [deleteChannelsCommand.data.toJSON()];
+  const commands = [
+    deleteChannelsCommand.data.toJSON(),
+    deleteRolesCommand.data.toJSON(),
+    clearMessagesCommand.data.toJSON()
+  ];
   
   const rest = new REST({ version: '9' }).setToken(token);
   

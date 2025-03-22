@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,12 +8,12 @@
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
     <meta
       name="description"
-      content="A powerful Discord bot that revolutionizes channel management for server administrators. Clean up and organize your Discord servers with ease."
+      content="A powerful Discord bot that revolutionizes channel, role and message management for server administrators. Clean up and organize your Discord servers with ease."
     />
     <meta property="og:title" content="Discord Channel Deleter Bot" />
     <meta
       property="og:description"
-      content="Revolutionize your Discord server management with this powerful channel cleanup bot"
+      content="Revolutionize your Discord server management with this powerful channel, role and message cleanup bot"
     />
     <meta property="og:image" content="images/bot-preview.svg" />
     <meta
@@ -54,6 +54,11 @@
                 ><i class="fab fa-github"></i> GitHub</a
               >
             </li>
+            <li>
+              <button id="theme-toggle" class="theme-toggle">
+                <i class="fas fa-moon"></i>
+              </button>
+            </li>
           </ul>
           <div class="hamburger">
             <div class="line"></div>
@@ -80,7 +85,7 @@
               class="primary-btn"
               ><i class="fab fa-github"></i> View on GitHub</a
             >
-            <a href="#add-to-discord" class="secondary-btn"
+            <a href="https://discord.com/oauth2/authorize?client_id=1352535669184139325&scope=bot&permissions=8" class="secondary-btn"
               ><i class="fab fa-discord"></i> Add to Discord</a
             >
           </div>
@@ -110,20 +115,29 @@
           </div>
 
           <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-user-tag"></i></div>
+            <h3>Role Cleanup</h3>
+            <p>
+              Easily delete unwanted roles with our role selection interface.
+              Perfect for decluttering your permission system.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-eraser"></i></div>
+            <h3>Message Clearing</h3>
+            <p>
+              Quickly delete up to 100 messages at once from any channel with
+              proper permission checks and confirmation.
+            </p>
+          </div>
+
+          <div class="feature-card">
             <div class="feature-icon"><i class="fas fa-list-ul"></i></div>
             <h3>Multi-Type Support</h3>
             <p>
               Works with all channel types including text, voice, categories,
               forums, and announcements.
-            </p>
-          </div>
-
-          <div class="feature-card">
-            <div class="feature-icon"><i class="fas fa-sync-alt"></i></div>
-            <h3>Persistent Selections</h3>
-            <p>
-              Channel selections are saved as you work and persist between
-              navigation.
             </p>
           </div>
 
@@ -148,7 +162,15 @@
           <div class="feature-card">
             <div class="feature-icon"><i class="fas fa-rocket"></i></div>
             <h3>Optimized Performance</h3>
-            <p>Fast operations even on servers with hundreds of channels.</p>
+            <p>Fast operations even on servers with hundreds of channels or roles.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-history"></i></div>
+            <h3>Detailed Logs</h3>
+            <p>
+              Comprehensive logging of all actions with proper error handling.
+            </p>
           </div>
         </div>
       </div>
@@ -411,8 +433,11 @@ npm run dev</code></pre>
             class="primary-btn"
             ><i class="fab fa-github"></i> View on GitHub</a
           >
-          <a href="#" class="secondary-btn"
+          <a href="https://discord.com/oauth2/authorize?client_id=1352535669184139325&scope=bot&permissions=8" class="secondary-btn"
             ><i class="fab fa-discord"></i> Add to Discord</a
+          >
+          <a href="https://discord.gg/tBNezcRHMe" class="secondary-btn"
+            ><i class="fab fa-discord"></i> Join Support Server</a
           >
         </div>
       </div>

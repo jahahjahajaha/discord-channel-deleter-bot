@@ -10,6 +10,51 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
+  // Theme toggle functionality
+  const themeToggle = document.getElementById('theme-toggle');
+  const htmlElement = document.documentElement;
+  
+  // Check for saved theme preference or respect OS preference
+  const savedTheme = localStorage.getItem('theme');
+  
+  if (savedTheme) {
+    htmlElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+  } else {
+    // If no saved preference, check OS preference
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const initialTheme = prefersDark ? 'dark' : 'light';
+    htmlElement.setAttribute('data-theme', initialTheme);
+    updateThemeIcon(initialTheme);
+  }
+  
+  // Toggle theme on click
+  if (themeToggle) {
+    themeToggle.addEventListener('click', function() {
+      const currentTheme = htmlElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      
+      htmlElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      updateThemeIcon(newTheme);
+    });
+  }
+  
+  // Update theme icon based on current theme
+  function updateThemeIcon(theme) {
+    if (!themeToggle) return;
+    
+    if (theme === 'dark') {
+      themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+      themeToggle.setAttribute('aria-label', 'Switch to light theme');
+      themeToggle.setAttribute('title', 'Switch to light theme');
+    } else {
+      themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+      themeToggle.setAttribute('aria-label', 'Switch to dark theme');
+      themeToggle.setAttribute('title', 'Switch to dark theme');
+    }
+  }
+  
   // Tabs functionality
   const tabButtons = document.querySelectorAll('.tab-btn');
   
