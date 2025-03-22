@@ -18,12 +18,12 @@
   --primary-dark: #6975f3;
   --secondary: #43B581;
   --danger: #F04747;
-  --dark: #DCDDDE;  /* Text color in dark mode */
+  --dark: #FFFFFF;  /* Text color in dark mode - improved contrast */
   --darker: #202225; /* Background color for footer, etc */
   --light: #36393F; /* Main background color in dark mode */
   --gray: #B9BBBE;  /* Secondary text color in dark mode */
   --gray-light: #2F3136; /* Background for feature cards, etc */
-  --gray-dark: #DCDDDE; /* Used for text that needs to be lighter */
+  --gray-dark: #FFFFFF; /* Used for text that needs to be lighter - improved contrast */
 }
 
 /* Dark Theme Overrides */
@@ -75,13 +75,56 @@
 
 /* Fix contrast issues in dark theme */
 [data-theme="dark"] .accordion-header {
-  color: #DCDDDE;
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] h1, 
+[data-theme="dark"] h2, 
+[data-theme="dark"] h3, 
+[data-theme="dark"] h4 {
+  color: #FFFFFF;
 }
 
 [data-theme="dark"] .feature-card p,
 [data-theme="dark"] .step-content p,
-[data-theme="dark"] .accordion-content p {
-  color: #B9BBBE;
+[data-theme="dark"] .accordion-content p,
+[data-theme="dark"] .tab-content p,
+[data-theme="dark"] .section-desc {
+  color: #DCDDDE;
+}
+
+[data-theme="dark"] .code-block code {
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .tab-content {
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .feature-card h3 {
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .step-content h3 {
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .logo span {
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .nav-links li a {
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .checklist li {
+  color: #FFFFFF;
+}
+
+/* Make code more readable in dark mode */
+[data-theme="dark"] .code-block {
+  background-color: #18191c;
+  border: 1px solid #2F3136;
 }
 
 /* Add theme transition for smooth theme switching */
@@ -424,6 +467,150 @@ nav {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 2rem;
+}
+
+/* Commands Section */
+.commands {
+  background-color: var(--gray-light);
+  padding: 5rem 0;
+}
+
+.commands-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 2rem;
+}
+
+.command-card {
+  background-color: var(--light);
+  border-radius: 10px;
+  padding: 2rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.command-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.command-icon {
+  font-size: 2rem;
+  color: var(--primary);
+  margin-bottom: 1.2rem;
+  background-color: rgba(88, 101, 242, 0.1);
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.command-card h3 {
+  font-family: monospace;
+  background-color: var(--gray-light);
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: var(--primary);
+}
+
+.command-card p {
+  color: var(--gray);
+  margin-bottom: 1.5rem;
+  flex-grow: 1;
+}
+
+.command-action {
+  margin-top: auto;
+}
+
+.command-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--primary);
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.command-link i {
+  transition: transform 0.3s ease;
+}
+
+.command-link:hover {
+  color: var(--primary-dark);
+}
+
+.command-link:hover i {
+  transform: translateX(5px);
+}
+
+/* Related Bot Promo Section */
+.related-bot {
+  background: linear-gradient(135deg, #3a3d56 0%, #2c2f33 100%);
+  padding: 5rem 0;
+  color: var(--light);
+}
+
+.related-bot-content {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+}
+
+.related-bot-logo {
+  max-width: 180px;
+  height: auto;
+  border-radius: 20px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.related-bot-info {
+  flex: 1;
+}
+
+.related-bot-info h2 {
+  color: var(--light);
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.related-bot-info p {
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+}
+
+.related-bot-features {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.related-bot-feature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.related-bot-feature i {
+  font-size: 2rem;
+  color: var(--primary);
+  margin-bottom: 0.8rem;
+  background-color: rgba(88, 101, 242, 0.2);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .feature-card {
