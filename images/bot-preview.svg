@@ -41,5 +41,5 @@
   
   <!-- Branding -->
   <rect x="150" y="500" width="900" height="50" rx="8" fill="#202225"/>
-  <text x="600" y="535" font-family="Arial" font-size="28" fill="white" text-anchor="middle">KnarliX Channel Manager - Discord Bot</text>
+  <text x="600" y="535" font-family="Arial" font-size="28" fill="white" text-anchor="middle">Discord Channel Deleter Bot</text>
 </svg>
