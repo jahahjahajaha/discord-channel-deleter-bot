@@ -116,9 +116,31 @@ The bot provides a slash command:
 
 This project can be deployed on any Node.js hosting platform:
 
-1. **Replit**: Use Replit to host your bot 24/7
+1. **Replit**: Use Replit to host your bot 24/7 (recommended with UptimeRobot for continuous uptime)
 2. **Railway**: Deploy with one-click using the Railway platform
 3. **VPS/Dedicated Server**: Host on any server running Node.js
+
+### Setting Up UptimeRobot for 24/7 Uptime
+
+To keep your bot running 24/7 on free hosting platforms like Replit, follow these steps:
+
+1. **Create an UptimeRobot Account**:
+   - Go to [UptimeRobot](https://uptimerobot.com) and sign up for a free account
+
+2. **Add a New Monitor**:
+   - Click "Add New Monitor"
+   - Select "HTTP(s)" as the monitor type
+   - Enter a friendly name like "Discord Channel Deleter Bot"
+   - Enter your bot's URL (e.g., `https://your-replit-project.username.repl.co`)
+   - Set the monitoring interval to 5 minutes
+   - Click "Create Monitor"
+
+3. **Verify Setup**:
+   - The bot now has a dedicated HTTP endpoint at the root URL (`/`) that responds to UptimeRobot's pings
+   - A health check endpoint is available at `/health` for detailed status monitoring
+   - UptimeRobot will ping your bot at regular intervals, preventing it from going into sleep mode
+
+This setup ensures your bot remains online even when using free hosting services that normally sleep after periods of inactivity.
 
 ## 🌐 Website
 

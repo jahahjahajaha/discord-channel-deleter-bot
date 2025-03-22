@@ -1,8 +1,38 @@
 import dotenv from "dotenv";
 import { startBot, getBotStatus } from "./discord/bot";
+import express from "express";
 
 // Load environment variables from .env file
 dotenv.config();
+
+// Create an Express server for UptimeRobot pinging
+const app = express();
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+
+// Ping endpoint for UptimeRobot
+app.get("/", (req, res) => {
+  const status = getBotStatus();
+  res.send({
+    botName: "Discord Channel Deleter Bot",
+    status: status.status,
+    uptime: process.uptime(),
+    message: "Bot is running. This endpoint is for UptimeRobot monitoring."
+  });
+});
+
+// Health check endpoint
+app.get("/health", (req, res) => {
+  const status = getBotStatus();
+  res.status(status.status === 'online' ? 200 : 503).send({
+    status: status.status,
+    error: status.error || null
+  });
+});
+
+// Start the Express server
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`UptimeRobot monitoring server running on port ${PORT}`);
+});
 
 (async () => {
   // Start Discord bot with token from environment
