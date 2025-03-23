@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: discord-channel-deleter-bot
+    env: node
+    runtime: node
+    plan: free
+    buildCommand: npm install && node build.js
+    startCommand: node dist/index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SKIP_FRONTEND_BUILD
+        value: true
