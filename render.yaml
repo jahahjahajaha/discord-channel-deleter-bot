@@ -4,10 +4,10 @@ services:
     env: node
     runtime: node
     plan: free
-    buildCommand: npm install && node build.js
-    startCommand: node dist/index.js
+    buildCommand: npm install && chmod +x .render-buildsteps.sh && ./.render-buildsteps.sh
+    startCommand: node .production.js
     envVars:
       - key: NODE_ENV
         value: production
-      - key: SKIP_FRONTEND_BUILD
-        value: true
+      - key: DISCORD_BOT_TOKEN
+        sync: false # This tells Render to prompt for the value during deployment
