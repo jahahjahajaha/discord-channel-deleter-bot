@@ -31,13 +31,15 @@
 ### Key Features
 
 - 🗑️ **Bulk Channel Deletion** - Select which channels to keep and delete the rest in one operation, perfect for server cleanup
+- 👑 **Role Cleanup** - Select which roles to keep and delete all others to streamline server permissions
+- ✏️ **Message Clearing** - Quickly clear up to 100 messages at once from any channel with proper permission checks
 - 📋 **Multi-Type Support** - Works with all channel types including text, voice, categories, forums, and announcements
-- 🔄 **Persistent Selections** - Channel selections are saved as you work and persist between navigation
+- 🔄 **Persistent Selections** - Selections are saved as you work and persist between navigation
 - 📱 **Mobile Compatible** - Works perfectly on Discord mobile - manage your server from anywhere
 - 👥 **Administrator Only** - Commands are restricted to users with administrator permissions for security
-- 🚀 **Optimized Performance** - Fast operations even on servers with hundreds of channels
-- 📊 **Activity Logging** - Detailed operation logs to track all channel management activities
-- 🌈 **Intuitive UI** - User-friendly interface with clear visual indicators and type filtering
+- 🚀 **Optimized Performance** - Fast operations even on servers with hundreds of channels or roles
+- 📊 **Activity Logging** - Detailed operation logs to track all management activities
+- 🌈 **Intuitive UI** - User-friendly interface with clear visual indicators and filtering options
 
 ## 📸 Screenshots
 
@@ -96,15 +98,22 @@ npm run dev
 2. Select your application and navigate to the "OAuth2" tab
 3. Under "Scopes" select "bot" and under "Bot Permissions" select:
    - Manage Channels
+   - Manage Roles
    - Read Messages/View Channels
    - Send Messages
+   - Manage Messages
 4. Copy the generated URL and open it in your browser to add the bot to your server
 
 ### Using the Bot Commands
 
-The bot provides a slash command:
+The bot provides the following slash commands:
 
 - `/delete-channels` - Opens an interactive interface to select channels to keep, while all unselected channels will be deleted
+- `/delete-roles` - Opens an interactive interface to select roles to keep, while all unselected roles will be deleted
+- `/clear` - Clears messages from a channel with powerful filtering options:
+  - `amount` - Number of messages to delete (1-100)
+  - `type` - Filter by message type (all, user messages only, or bot messages only)
+  - `from` - Delete messages only from a specific user
 
 ## 🔒 Security
 
@@ -116,9 +125,31 @@ The bot provides a slash command:
 
 This project can be deployed on any Node.js hosting platform:
 
-1. **Replit**: Use Replit to host your bot 24/7
+1. **Replit**: Use Replit to host your bot 24/7 (recommended with UptimeRobot for continuous uptime)
 2. **Railway**: Deploy with one-click using the Railway platform
 3. **VPS/Dedicated Server**: Host on any server running Node.js
+
+### Setting Up UptimeRobot for 24/7 Uptime
+
+To keep your bot running 24/7 on free hosting platforms like Replit, follow these steps:
+
+1. **Create an UptimeRobot Account**:
+   - Go to [UptimeRobot](https://uptimerobot.com) and sign up for a free account
+
+2. **Add a New Monitor**:
+   - Click "Add New Monitor"
+   - Select "HTTP(s)" as the monitor type
+   - Enter a friendly name like "Discord Channel Deleter Bot"
+   - Enter your bot's URL (e.g., `https://your-replit-project.username.repl.co`)
+   - Set the monitoring interval to 5 minutes
+   - Click "Create Monitor"
+
+3. **Verify Setup**:
+   - The bot now has a dedicated HTTP endpoint at the root URL (`/`) that responds to UptimeRobot's pings
+   - A health check endpoint is available at `/health` for detailed status monitoring
+   - UptimeRobot will ping your bot at regular intervals, preventing it from going into sleep mode
+
+This setup ensures your bot remains online even when using free hosting services that normally sleep after periods of inactivity.
 
 ## 🌐 Website
 
@@ -176,6 +207,9 @@ Absolutely! The code is open-source and can be modified to suit your needs.
 
 ### How many channels can the bot manage?
 The bot is designed to handle servers with hundreds of channels efficiently.
+
+### What can I do if the bot is offline?
+If the bot appears offline, you can deploy your own instance using the setup instructions in this README. The bot is designed to run on any Node.js hosting platform including Replit, Railway, or your own server.
 
 ## 📝 License
 

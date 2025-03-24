@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clear Messages Command - Discord Channel Deleter Bot</title>
+  <link rel="shortcut icon" href="/discord-channel-deleter-bot/logo.svg" type="image/x-icon"/>
+  <link rel="stylesheet" href="/discord-channel-deleter-bot/website/styles.css">
+  <link rel="stylesheet" href="commands.css">
+  <!-- Font Awesome -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="container">
+      <nav>
+        <div class="logo">
+          <img src="/discord-channel-deleter-bot/images/logo.svg" alt="Discord Channel Deleter Bot Logo" />
+          <span>Discord Channel Deleter Bot</span>
+        </div>
+        <ul class="nav-links">
+          <li><a href="/discord-channel-deleter-bot/index.html#features">Features</a></li>
+          <li><a href="/discord-channel-deleter-bot/index.html#commands">Commands</a></li>
+          <li><a href="/discord-channel-deleter-bot/index.html#setup">Setup</a></li>
+          <li><a href="/discord-channel-deleter-bot/index.html#faq">FAQ</a></li>
+          <li>
+            <a
+              href="https://github.com/knarlix/discord-channel-deleter-bot"
+              class="github-link"
+              ><i class="fab fa-github"></i> GitHub</a
+            >
+          </li>
+          <li>
+            <button id="theme-toggle" class="theme-toggle">
+              <i class="fas fa-sun"></i>
+            </button>
+          </li>
+        </ul>
+        <div class="hamburger">
+          <div class="line"></div>
+          <div class="line"></div>
+          <div class="line"></div>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Command Documentation -->
+  <section class="command-doc">
+    <div class="container">
+      <div class="command-header">
+        <h1><i class="fas fa-eraser"></i> Clear Messages Command</h1>
+        <div class="command-syntax">
+          <code>/clear</code>
+        </div>
+      </div>
+      
+      <div class="command-description">
+        <p>The <code>/clear</code> command allows you to delete multiple messages at once from a Discord channel. You can specify how many messages to delete and apply various filters such as message type, author, and more.</p>
+      </div>
+
+      <div class="requirements">
+        <h2>Requirements</h2>
+        <ul>
+          <li><i class="fas fa-check"></i> <strong>Manage Messages Permission:</strong> You must have the Manage Messages permission in the server.</li>
+          <li><i class="fas fa-check"></i> <strong>Bot Permissions:</strong> The bot must have the Manage Messages permission.</li>
+        </ul>
+      </div>
+
+      <div class="usage-guide">
+        <h2>How to Use</h2>
+        
+        <div class="usage-step">
+          <h3>Step 1: Invoke the Command</h3>
+          <p>Type <code>/clear</code> in the channel where you want to delete messages.</p>
+          <div class="screenshot">
+            <img src="/discord-channel-deleter-bot/images/clearstep1.png" alt="Invoking the clear command">
+            
+          </div>
+        </div>
+
+        <div class="usage-step">
+          <h3>Step 2: Specify Options</h3>
+          <p>The <code>/clear</code> command offers several options:</p>
+          <ul>
+            <li><strong>amount</strong> (Required): Number of messages to delete (1-100).</li>
+            <li><strong>type</strong> (Optional): Filter by message type.
+              <ul>
+                <li>All Messages: Deletes all types of messages.</li>
+                <li>User Messages Only: Deletes only messages sent by regular users.</li>
+                <li>Bot Messages Only: Deletes only messages sent by bots.</li>
+                <li>Except System Messages: Deletes all messages except system messages.</li>
+              </ul>
+            </li>
+            <li><strong>from</strong> (Optional): Delete messages only from a specific user.</li>
+            <li><strong>include_pinned</strong> (Optional): Whether to include pinned messages in the deletion.</li>
+          </ul>
+          <div class="screenshot">
+            <img src="/discord-channel-deleter-bot/images/clearstep2.png" alt="Command options">
+            
+          </div>
+        </div>
+
+        <div class="usage-step">
+          <h3>Step 3: Execution</h3>
+          <p>After entering your options, press Enter to execute the command. The bot will show a processing message.</p>
+          <div class="screenshot">
+            <img src="/discord-channel-deleter-bot/images/clearstep3.png" alt="Processing message">
+            
+          </div>
+        </div>
+
+        <div class="usage-step">
+          <h3>Step 4: Completion</h3>
+          <p>The bot will delete the messages according to your criteria and show a summary of the results.</p>
+          <div class="screenshot">
+            <img src="/discord-channel-deleter-bot/images/clearstep4.png" alt="Completion message">
+            
+          </div>
+        </div>
+      </div>
+
+      <div class="examples">
+        <h2>Command Examples</h2>
+        
+        <div class="example">
+          <h3>Example 1: Delete 10 messages</h3>
+          <code>/clear amount:10</code>
+          <p>This deletes the 10 most recent messages in the channel.</p>
+        </div>
+        
+        <div class="example">
+          <h3>Example 2: Delete 50 bot messages</h3>
+          <code>/clear amount:50 type:bot</code>
+          <p>This deletes up to 50 of the most recent messages sent by bots.</p>
+        </div>
+        
+        <div class="example">
+          <h3>Example 3: Delete messages from a specific user</h3>
+          <code>/clear amount:100 from:@username</code>
+          <p>This deletes up to 100 of the most recent messages sent by the specified user.</p>
+        </div>
+        
+        <div class="example">
+          <h3>Example 4: Delete messages including pinned ones</h3>
+          <code>/clear amount:20 include_pinned:true</code>
+          <p>This deletes the 20 most recent messages, including any that are pinned.</p>
+        </div>
+      </div>
+
+      <div class="common-issues">
+        <h2>Common Issues</h2>
+        
+        <div class="issue">
+          <h3>Discord API Limitations</h3>
+          <p>Discord only allows bulk deletion of messages that are less than 14 days old. Older messages must be deleted individually, which is slower.</p>
+        </div>
+        
+        <div class="issue">
+          <h3>Permission Errors</h3>
+          <p>If you or the bot don't have the Manage Messages permission, the command will fail. Check both your permissions and the bot's permissions.</p>
+        </div>
+        
+        <div class="issue">
+          <h3>Maximum Amount</h3>
+          <p>Discord limits bulk deletion to 100 messages at a time. If you need to delete more, you'll need to run the command multiple times.</p>
+        </div>
+      </div>
+
+      <div class="related-commands">
+        <h2>Related Commands</h2>
+        <ul>
+          <li><a href="delete-channels.html"><i class="fas fa-trash-alt"></i> /delete-channels</a> - Delete multiple channels at once</li>
+          <li><a href="delete-roles.html"><i class="fas fa-user-tag"></i> /delete-roles</a> - Delete multiple roles at once</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Related Bot Section -->
+  <section class="related-bot">
+    <div class="container">
+      <div class="related-bot-content">
+        <img src="/images/Jarvi_Logo.png" alt="Jarvi Music Bot Logo" class="related-bot-logo">
+        <div class="related-bot-info">
+          <h2>Meet Jarvi - The Ultimate Music Bot</h2>
+          <p>Looking for a powerful music bot to complement your server? Check out Jarvi, our feature-rich music bot with crystal-clear audio quality, playlist management, and intuitive controls.</p>
+          <div class="related-bot-features">
+            <div class="related-bot-feature">
+              <i class="fas fa-music"></i>
+              <p>High Quality Audio</p>
+            </div>
+            <div class="related-bot-feature">
+              <i class="fas fa-list"></i>
+              <p>Advanced Playlists</p>
+            </div>
+            <div class="related-bot-feature">
+              <i class="fas fa-sliders-h"></i>
+              <p>Equalizer Controls</p>
+            </div>
+          </div>
+          <a href="https://knarlix.github.io/Jarvi" class="primary-btn" target="_blank">
+            <i class="fas fa-external-link-alt"></i> Visit Jarvi Website
+          </a>
+          <a href="https://discord.com/oauth2/authorize?client_id=1340194029517799434" class="primary-btn" target="_blank">
+            <i class="fas fa-robot"></i> invite Jarvi
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <img src="/discord-channel-deleter-bot/images/logo.svg" alt="Discord Channel Deleter Bot Logo">
+          <p>Discord Channel Deleter Bot</p>
+          <span>A powerful server management tool</span>
+        </div>
+        
+        <div class="footer-links">
+          <div class="footer-section">
+            <h3>Navigation</h3>
+            <ul>
+              <li><a href="/discord-channel-deleter-bot/index.html#features">Features</a></li>
+              <li><a href="/discord-channel-deleter-bot/index.html#commands">Commands</a></li>
+              <li><a href="/discord-channel-deleter-bot/index.html#setup">Setup</a></li>
+              <li><a href="/discord-channel-deleter-bot/index.html#faq">FAQ</a></li>
+            </ul>
+          </div>
+          
+          <div class="footer-section">
+            <h3>Documentation</h3>
+            <ul>
+              <li><a href="delete-channels.html">/delete-channels</a></li>
+              <li><a href="delete-roles.html">/delete-roles</a></li>
+              <li><a href="clear.html">/clear</a></li>
+            </ul>
+          </div>
+          
+          <div class="footer-section">
+            <h3>Connect</h3>
+            <div class="social-links">
+              <a href="https://github.com/knarlix/discord-channel-deleter-bot" class="social-link" title="GitHub">
+                <i class="fab fa-github"></i>
+              </a>
+              <a href="https://discord.gg/tBNezcRHMe" class="social-link" title="Discord Support Server">
+                <i class="fab fa-discord"></i>
+              </a>
+            </div>
+            
+            <div class="creator-info">
+              <img src="/images/pfp.png" alt="KnarliX" class="creator-avatar">
+              <div>
+                <h4>KnarliX</h4>
+                <p>Developer & Designer</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p>&copy; 2025 Discord Channel Deleter Bot. Licensed under <a href="https://opensource.org/license/mit/">MIT</a>.</p>
+        <p>Made with <i class="fas fa-heart"></i> by <a href="https://github.com/knarlix">KnarliX</a></p>
+      </div>
+    </div>
+  </footer>
+  
+  <script src="/discord-channel-deleter-bot/website/script.js"></script>
+</body>
+</html>

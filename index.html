@@ -1,21 +1,21 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Discord Channel Deleter Bot</title>
-    <link rel="stylesheet" href="styles.css" />
-    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="website/styles.css" />
+    <link rel="shortcut icon" href="/discord-channel-deleter-bot/logo.svg" type="image/x-icon"/>
     <meta
       name="description"
-      content="A powerful Discord bot that revolutionizes channel management for server administrators. Clean up and organize your Discord servers with ease."
+      content="A powerful Discord bot that revolutionizes channel, role and message management for server administrators. Clean up and organize your Discord servers with ease."
     />
     <meta property="og:title" content="Discord Channel Deleter Bot" />
     <meta
       property="og:description"
-      content="Revolutionize your Discord server management with this powerful channel cleanup bot"
+      content="Revolutionize your Discord server management with this powerful channel, role and message cleanup bot"
     />
-    <meta property="og:image" content="images/bot-preview.png" />
+    <meta property="og:image" content="images/bot-preview.svg" />
     <meta
       property="og:url"
       content="https://knarlix.github.io/discord-channel-deleter-bot/"
@@ -44,7 +44,7 @@
           </div>
           <ul class="nav-links">
             <li><a href="#features">Features</a></li>
-            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#commands">Commands</a></li>
             <li><a href="#setup">Setup</a></li>
             <li><a href="#faq">FAQ</a></li>
             <li>
@@ -53,6 +53,11 @@
                 class="github-link"
                 ><i class="fab fa-github"></i> GitHub</a
               >
+            </li>
+            <li>
+              <button id="theme-toggle" class="theme-toggle">
+                <i class="fas fa-sun"></i>
+              </button>
             </li>
           </ul>
           <div class="hamburger">
@@ -80,13 +85,13 @@
               class="primary-btn"
               ><i class="fab fa-github"></i> View on GitHub</a
             >
-            <a href="#add-to-discord" class="secondary-btn"
+            <a href="https://discord.com/oauth2/authorize?client_id=1352535669184139325&scope=bot&permissions=8" class="secondary-btn"
               ><i class="fab fa-discord"></i> Add to Discord</a
             >
           </div>
         </div>
         <div class="hero-image">
-          <img src="images/hero-preview.png" alt="Bot Interface Preview" />
+          <img src="images/cmd_testing.gif" alt="Bot Interface Preview" />
         </div>
       </div>
     </section>
@@ -110,20 +115,29 @@
           </div>
 
           <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-user-tag"></i></div>
+            <h3>Role Cleanup</h3>
+            <p>
+              Easily delete unwanted roles with our role selection interface.
+              Perfect for decluttering your permission system.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-eraser"></i></div>
+            <h3>Message Clearing</h3>
+            <p>
+              Quickly delete up to 100 messages at once from any channel with
+              proper permission checks and confirmation.
+            </p>
+          </div>
+
+          <div class="feature-card">
             <div class="feature-icon"><i class="fas fa-list-ul"></i></div>
             <h3>Multi-Type Support</h3>
             <p>
               Works with all channel types including text, voice, categories,
               forums, and announcements.
-            </p>
-          </div>
-
-          <div class="feature-card">
-            <div class="feature-icon"><i class="fas fa-sync-alt"></i></div>
-            <h3>Persistent Selections</h3>
-            <p>
-              Channel selections are saved as you work and persist between
-              navigation.
             </p>
           </div>
 
@@ -148,70 +162,78 @@
           <div class="feature-card">
             <div class="feature-icon"><i class="fas fa-rocket"></i></div>
             <h3>Optimized Performance</h3>
-            <p>Fast operations even on servers with hundreds of channels.</p>
+            <p>Fast operations even on servers with hundreds of channels or roles.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-history"></i></div>
+            <h3>Detailed Logs</h3>
+            <p>
+              Comprehensive logging of all actions with proper error handling.
+            </p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- How It Works Section -->
-    <section id="how-it-works" class="how-it-works">
+    <!-- Commands Section -->
+    <section id="commands" class="commands">
       <div class="container">
-        <h2>How It Works</h2>
+        <h2>Bot Commands</h2>
         <p class="section-desc">
-          Simple channel management in just a few steps
+          Powerful slash commands for efficient server management
         </p>
 
-        <div class="steps">
-          <div class="step">
-            <div class="step-number">1</div>
-            <div class="step-content">
-              <h3>Invite the Bot</h3>
-              <p>
-                Add Discord Channel Deleter Bot to your Discord server with the
-                proper permissions.
-              </p>
-              <img src="images/step1.png" alt="Inviting the bot" />
+        <div class="commands-grid">
+          <div class="command-card">
+            <div class="command-icon">
+              <i class="fas fa-trash-alt"></i>
+            </div>
+            <h3>/delete-channels</h3>
+            <p>
+              Efficiently delete multiple channels at once while keeping the ones you select.
+            </p>
+            <div class="command-action">
+              <a href="website/commands/delete-channels.html" class="command-link">
+                View Documentation <i class="fas fa-arrow-right"></i>
+              </a>
             </div>
           </div>
 
-          <div class="step">
-            <div class="step-number">2</div>
-            <div class="step-content">
-              <h3>Use the /delete-channels Command</h3>
-              <p>
-                Type the slash command in any channel to start the cleanup
-                process.
-              </p>
-              <img src="images/step2.png" alt="Using slash command" />
+          <div class="command-card">
+            <div class="command-icon">
+              <i class="fas fa-user-tag"></i>
+            </div>
+            <h3>/delete-roles</h3>
+            <p>
+              Clean up your server's roles by selecting which ones to keep and deleting the rest.
+            </p>
+            <div class="command-action">
+              <a href="website/commands/delete-roles.html" class="command-link">
+                View Documentation <i class="fas fa-arrow-right"></i>
+              </a>
             </div>
           </div>
 
-          <div class="step">
-            <div class="step-number">3</div>
-            <div class="step-content">
-              <h3>Select Channels to Keep</h3>
-              <p>
-                Use the filter menu to navigate through channels and select the
-                ones you want to keep.
-              </p>
-              <img src="images/step3.png" alt="Selecting channels" />
+          <div class="command-card">
+            <div class="command-icon">
+              <i class="fas fa-eraser"></i>
             </div>
-          </div>
-
-          <div class="step">
-            <div class="step-number">4</div>
-            <div class="step-content">
-              <h3>Confirm and Execute</h3>
-              <p>
-                Review your selection and confirm to delete all other channels.
-              </p>
-              <img src="images/step4.png" alt="Confirming deletion" />
+            <h3>/clear</h3>
+            <p>
+              Quickly delete up to 100 messages from any channel with powerful filtering options.
+            </p>
+            <div class="command-action">
+              <a href="website/commands/clear.html" class="command-link">
+                View Documentation <i class="fas fa-arrow-right"></i>
+              </a>
             </div>
           </div>
         </div>
       </div>
     </section>
+
+    <!-- How It Works Section Removed -->
 
     <!-- Setup Section -->
     <section id="setup" class="setup">
@@ -300,15 +322,15 @@ npm run dev</code></pre>
               <p>For 24/7 hosting, consider using one of these platforms:</p>
               <div class="hosting-options">
                 <a href="https://replit.com" class="hosting-option">
-                  <img src="images/replit-logo.png" alt="Replit" />
+                  <img src="/images/replit-logo.svg" alt="Replit" />
                   <span>Replit</span>
                 </a>
                 <a href="https://railway.app" class="hosting-option">
-                  <img src="images/railway-logo.png" alt="Railway" />
+                  <img src="/images/railway-logo.svg" alt="Railway" />
                   <span>Railway</span>
                 </a>
                 <a href="https://heroku.com" class="hosting-option">
-                  <img src="images/heroku-logo.png" alt="Heroku" />
+                  <img src="/images/heroku-logo.svg" alt="Heroku" />
                   <span>Heroku</span>
                 </a>
               </div>
@@ -393,6 +415,53 @@ npm run dev</code></pre>
               </p>
             </div>
           </div>
+          
+          <div class="accordion-item">
+            <button class="accordion-header">
+              <span>What if the bot is offline?</span>
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="accordion-content">
+              <p>
+                If the official bot instance is offline, you can deploy your own instance
+                following the setup instructions on this page or on GitHub. The bot is designed
+                to be easily self-hosted on platforms like Replit, Railway, or any Node.js hosting service.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Jarvi Music Bot Promo Section -->
+    <section id="jarvi-promo" class="related-bot">
+      <div class="container">
+        <div class="related-bot-content">
+          <img src="/images/Jarvi_Logo.png" alt="Jarvi Music Bot Logo" class="related-bot-logo">
+          <div class="related-bot-info">
+            <h2>Meet Jarvi - The Ultimate Music Bot</h2>
+            <p>Looking for a powerful music bot to complement your server? Check out Jarvi, our feature-rich music bot with crystal-clear audio quality, playlist management, and intuitive controls.</p>
+            <div class="related-bot-features">
+              <div class="related-bot-feature">
+                <i class="fas fa-music"></i>
+                <p>High Quality Audio</p>
+              </div>
+              <div class="related-bot-feature">
+                <i class="fas fa-list"></i>
+                <p>Advanced Playlists</p>
+              </div>
+              <div class="related-bot-feature">
+                <i class="fas fa-sliders-h"></i>
+                <p>Equalizer Controls</p>
+              </div>
+            </div>
+            <a href="https://knarlix.github.io/Jarvi" class="primary-btn" target="_blank">
+              <i class="fas fa-external-link-alt"></i> Visit Jarvi Website
+            </a>
+            <a href="https://discord.com/oauth2/authorize?client_id=1340194029517799434" class="primary-btn" target="_blank">
+            <i class="fas fa-robot"></i> invite Jarvi
+            </a>
+          </div>
         </div>
       </div>
     </section>
@@ -411,8 +480,11 @@ npm run dev</code></pre>
             class="primary-btn"
             ><i class="fab fa-github"></i> View on GitHub</a
           >
-          <a href="#" class="secondary-btn"
+          <a href="https://discord.com/oauth2/authorize?client_id=1352535669184139325&scope=bot&permissions=8" class="secondary-btn"
             ><i class="fab fa-discord"></i> Add to Discord</a
+          >
+          <a href="https://discord.gg/tBNezcRHMe" class="secondary-btn"
+            ><i class="fab fa-discord"></i> Join Support Server</a
           >
         </div>
       </div>
@@ -432,7 +504,7 @@ npm run dev</code></pre>
               <h3>Navigation</h3>
               <ul>
                 <li><a href="#features">Features</a></li>
-                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a href="#commands">Commands</a></li>
                 <li><a href="#setup">Setup</a></li>
                 <li><a href="#faq">FAQ</a></li>
               </ul>
@@ -464,6 +536,11 @@ npm run dev</code></pre>
                     >Discord.js Docs</a
                   >
                 </li>
+                <li>
+                  <a href="https://discord.com/oauth2/authorize?client_id=1340194029517799434" target="_blank"
+                    ><strong>Jarvi Music Bot</strong></a
+                  >
+                </li>
               </ul>
             </div>
 
@@ -491,13 +568,13 @@ npm run dev</code></pre>
               </div>
               <div class="creator-info">
                 <img
-                  src="images/My-pfp/pfp.svg"
+                  src="/images/pfp.png"
                   alt="KnarliX"
                   class="creator-avatar"
                 />
                 <div>
                   <h4>KnarliX</h4>
-                  <p>Lead Developer & Designer</p>
+                  <p>Developer & Designer</p>
                 </div>
               </div>
             </div>
@@ -521,6 +598,6 @@ npm run dev</code></pre>
     </footer>
 
     <!-- JavaScript -->
-    <script src="script.js"></script>
+    <script src="website/script.js"></script>
   </body>
 </html>

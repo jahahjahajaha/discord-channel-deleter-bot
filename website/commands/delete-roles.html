@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delete Roles Command - Discord Channel Deleter Bot</title>
+  <link rel="shortcut icon" href="/discord-channel-deleter-bot/logo.svg" type="image/x-icon"/>
+  <link rel="stylesheet" href="/discord-channel-deleter-bot/website/styles.css">
+  <link rel="stylesheet" href="commands.css">
+  <!-- Font Awesome -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="container">
+      <nav>
+        <div class="logo">
+          <img src="/discord-channel-deleter-bot/images/logo.svg" alt="Discord Channel Deleter Bot Logo" />
+          <span>Discord Channel Deleter Bot</span>
+        </div>
+        <ul class="nav-links">
+          <li><a href="/discord-channel-deleter-bot/index.html#features">Features</a></li>
+          <li><a href="/discord-channel-deleter-bot/index.html#commands">Commands</a></li>
+          <li><a href="/discord-channel-deleter-bot/index.html#setup">Setup</a></li>
+          <li><a href="/discord-channel-deleter-bot/index.html#faq">FAQ</a></li>
+          <li>
+            <a
+              href="https://github.com/knarlix/discord-channel-deleter-bot"
+              class="github-link"
+              ><i class="fab fa-github"></i> GitHub</a
+            >
+          </li>
+          <li>
+            <button id="theme-toggle" class="theme-toggle">
+              <i class="fas fa-sun"></i>
+            </button>
+          </li>
+        </ul>
+        <div class="hamburger">
+          <div class="line"></div>
+          <div class="line"></div>
+          <div class="line"></div>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Command Documentation -->
+  <section class="command-doc">
+    <div class="container">
+      <div class="command-header">
+        <h1><i class="fas fa-user-tag"></i> Delete Roles Command</h1>
+        <div class="command-syntax">
+          <code>/delete-roles</code>
+        </div>
+      </div>
+      
+      <div class="command-description">
+        <p>The <code>/delete-roles</code> command allows you to delete multiple roles at once from your Discord server. You can select which roles to keep, and all other roles will be deleted. This is particularly useful for cleaning up unused roles or reorganizing your permission system.</p>
+      </div>
+
+      <div class="requirements">
+        <h2>Requirements</h2>
+        <ul>
+          <li><i class="fas fa-check"></i> <strong>Administrator Permissions:</strong> You must have the Administrator permission in the server.</li>
+          <li><i class="fas fa-check"></i> <strong>Bot Permissions:</strong> The bot must have the Manage Roles permission.</li>
+          <li><i class="fas fa-check"></i> <strong>Role Hierarchy:</strong> The bot's highest role must be above the roles you want to delete.</li>
+        </ul>
+      </div>
+
+      <div class="usage-guide">
+        <h2>How to Use</h2>
+        
+        <div class="usage-step">
+          <h3>Step 1: Invoke the Command</h3>
+          <p>Type <code>/delete-roles</code> in any channel of your Discord server.</p>
+          <div class="screenshot">
+            <img src="/discord-channel-deleter-bot/images/Rolesdltstep1.png" alt="Invoking the delete-roles command">
+            
+          </div>
+        </div>
+
+        <div class="usage-step">
+          <h3>Step 2: Choose Role Filter</h3>
+          <p>The bot will present you with a dropdown menu to filter roles by type. You can choose from:</p>
+          <ul>
+            <li><strong>All Roles:</strong> Show all roles</li>
+            <li><strong>High Priority Roles:</strong> Show only high priority roles (position > 15)</li>
+            <li><strong>Medium Priority Roles:</strong> Show only medium priority roles (position 5-15)</li>
+            <li><strong>Low Priority Roles:</strong> Show only low priority roles (position < 5)</li>
+            <li><strong>Displayed Separately:</strong> Show only roles displayed separately in the member list</li>
+            <li><strong>Colored Roles:</strong> Show only roles with custom colors</li>
+          </ul>
+          <div class="screenshot">
+            <img src="/discord-channel-deleter-bot/images/Rolesdltstep2.png" alt="Role filter dropdown">
+            
+          </div>
+        </div>
+
+        <div class="usage-step">
+          <h3>Step 3: Select Roles to Keep</h3>
+          <p>After selecting a filter, you'll see a dropdown menu of roles. Select all roles you want to <strong>KEEP</strong>. All other roles will be deleted.</p>
+          <div class="tip">
+            <p><i class="fas fa-lightbulb"></i> <strong>Tip:</strong> For servers with many roles, the bot provides pagination. Use the "Next Page" and "Previous Page" buttons to navigate through the list.</p>
+          </div>
+          <div class="screenshot">
+            <img src="/discord-channel-deleter-bot/images/Rolesdltstep3.png" alt="Selecting roles to keep">
+            
+          </div>
+        </div>
+
+        <div class="usage-step">
+          <h3>Step 4: Review and Confirm</h3>
+          <p>After selecting roles to keep, review your selection and click "Confirm Selection".</p>
+          <div class="warning">
+            <p><i class="fas fa-exclamation-triangle"></i> <strong>Warning:</strong> This action is irreversible! Double-check your selection before confirming.</p>
+          </div>
+          <div class="screenshot">
+            <img src="/discord-channel-deleter-bot/images/Rolesdltstep4.png" alt="Review and confirmation screen">
+            
+          </div>
+        </div>
+
+        <div class="usage-step">
+          <h3>Step 5: Final Confirmation</h3>
+          <p>The bot will ask for a final confirmation. Click "Yes, Delete Roles" to proceed with the deletion.</p>
+          <div class="screenshot">
+            <img src="/discord-channel-deleter-bot/images/Rolesdltstep5.png" alt="Final confirmation screen">
+            
+          </div>
+        </div>
+
+        <div class="usage-step">
+          <h3>Step 6: Completion</h3>
+          <p>The bot will process the deletion and show a summary of the results, including how many roles were successfully deleted and any failures.</p>
+          <div class="screenshot">
+            <img src="/discord-channel-deleter-bot/images/Rolesdltstep6.png" alt="Completion screen">
+            
+          </div>
+        </div>
+      </div>
+
+      <div class="common-issues">
+        <h2>Common Issues</h2>
+        
+        <div class="issue">
+          <h3>Permission Errors</h3>
+          <p>If the bot doesn't have sufficient permissions, you'll see an error message. Make sure the bot has the "Manage Roles" permission and its highest role is above the roles you want to delete.</p>
+        </div>
+        
+        <div class="issue">
+          <h3>Managed Roles</h3>
+          <p>Roles that are managed by integrations (such as bot roles or server boost roles) cannot be deleted. The bot will automatically skip these roles.</p>
+        </div>
+        
+        <div class="issue">
+          <h3>Empty Role Names</h3>
+          <p>For roles with empty names, the bot will display "Role (ID: [role-id])" to help identify them.</p>
+        </div>
+        
+        <div class="issue">
+          <h3>Command Timeout</h3>
+          <p>The command has a timeout of 15 minutes. If you don't complete the selection within this time, you'll need to restart.</p>
+        </div>
+      </div>
+
+      <div class="related-commands">
+        <h2>Related Commands</h2>
+        <ul>
+          <li><a href="delete-channels.html"><i class="fas fa-trash-alt"></i> /delete-channels</a> - Delete multiple channels at once</li>
+          <li><a href="clear.html"><i class="fas fa-eraser"></i> /clear</a> - Delete multiple messages at once</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Related Bot Section -->
+  <section class="related-bot">
+    <div class="container">
+      <div class="related-bot-content">
+        <img src="/images/Jarvi_Logo.png" alt="Jarvi Music Bot Logo" class="related-bot-logo">
+        <div class="related-bot-info">
+          <h2>Meet Jarvi - The Ultimate Music Bot</h2>
+          <p>Looking for a powerful music bot to complement your server? Check out Jarvi, our feature-rich music bot with crystal-clear audio quality, playlist management, and intuitive controls.</p>
+          <div class="related-bot-features">
+            <div class="related-bot-feature">
+              <i class="fas fa-music"></i>
+              <p>High Quality Audio</p>
+            </div>
+            <div class="related-bot-feature">
+              <i class="fas fa-list"></i>
+              <p>Advanced Playlists</p>
+            </div>
+            <div class="related-bot-feature">
+              <i class="fas fa-sliders-h"></i>
+              <p>Equalizer Controls</p>
+            </div>
+          </div>
+          <a href="https://knarlix.github.io/Jarvi" class="primary-btn" target="_blank">
+            <i class="fas fa-external-link-alt"></i> Visit Jarvi Website
+          </a>
+          <a href="https://discord.com/oauth2/authorize?client_id=1340194029517799434" class="primary-btn" target="_blank">
+            <i class="fas fa-robot"></i> invite Jarvi
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <img src="/discord-channel-deleter-bot/images/logo.svg" alt="Discord Channel Deleter Bot Logo">
+          <p>Discord Channel Deleter Bot</p>
+          <span>A powerful server management tool</span>
+        </div>
+        
+        <div class="footer-links">
+          <div class="footer-section">
+            <h3>Navigation</h3>
+            <ul>
+              <li><a href="/discord-channel-deleter-bot/index.html#features">Features</a></li>
+              <li><a href="/discord-channel-deleter-bot/index.html#commands">Commands</a></li>
+              <li><a href="/discord-channel-deleter-bot/index.html#setup">Setup</a></li>
+              <li><a href="/discord-channel-deleter-bot/index.html#faq">FAQ</a></li>
+            </ul>
+          </div>
+          
+          <div class="footer-section">
+            <h3>Documentation</h3>
+            <ul>
+              <li><a href="delete-channels.html">/delete-channels</a></li>
+              <li><a href="delete-roles.html">/delete-roles</a></li>
+              <li><a href="clear.html">/clear</a></li>
+            </ul>
+          </div>
+          
+          <div class="footer-section">
+            <h3>Connect</h3>
+            <div class="social-links">
+              <a href="https://github.com/knarlix/discord-channel-deleter-bot" class="social-link" title="GitHub">
+                <i class="fab fa-github"></i>
+              </a>
+              <a href="https://discord.gg/tBNezcRHMe" class="social-link" title="Discord Support Server">
+                <i class="fab fa-discord"></i>
+              </a>
+            </div>
+            
+            <div class="creator-info">
+              <img src="/images/pfp.png" alt="KnarliX" class="creator-avatar">
+              <div>
+                <h4>KnarliX</h4>
+                <p>Developer & Designer</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p>&copy; 2025 Discord Channel Deleter Bot. Licensed under <a href="https://opensource.org/license/mit/">MIT</a>.</p>
+        <p>Made with <i class="fas fa-heart"></i> by <a href="https://github.com/knarlix">KnarliX</a></p>
+      </div>
+    </div>
+  </footer>
+  
+  <script src="/discord-channel-deleter-bot/website/script.js"></script>
+</body>
+</html>

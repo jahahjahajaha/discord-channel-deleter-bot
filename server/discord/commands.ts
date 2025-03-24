@@ -3,7 +3,8 @@ import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
 import { 
   Client, 
-  CommandInteraction, 
+  CommandInteraction,
+  ChatInputCommandInteraction,
   PermissionFlagsBits,
   ActionRowBuilder,
   StringSelectMenuBuilder,
@@ -18,7 +19,7 @@ import {
   Collection
 } from 'discord.js';
 import { ChannelType } from 'discord-api-types/v10';
-import { deleteChannels, getKnarlixAvatarURL } from './bot';
+import { deleteChannels, deleteRoles, deleteMessages, getKnarlixAvatarURL } from './bot';
 
 // Define the delete-channels slash command
 export const deleteChannelsCommand = {
@@ -862,9 +863,966 @@ function getFilterName(filter: string): string {
     case 'category': return 'Categories';
     case 'announcement': return 'Announcement Channels';
     case 'forum': return 'Forum Channels';
+    case 'high': return 'High Priority Roles';
+    case 'medium': return 'Medium Priority Roles';
+    case 'low': return 'Low Priority Roles';
+    case 'hoisted': return 'Displayed Separately Roles';
+    case 'color': return 'Colored Roles';
     default: return 'All Channels';
   }
 }
+
+// Define the delete-roles slash command
+export const deleteRolesCommand = {
+  data: new SlashCommandBuilder()
+    .setName('delete-roles')
+    .setDescription('Delete all roles except for the ones you want to keep')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+  async execute(interaction: CommandInteraction, client: Client) {
+    // Check if the user has Administrator permission
+    if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
+      await interaction.reply({
+        content: 'You do not have permission to use this command. Administrator permission is required.',
+        ephemeral: true
+      });
+      return;
+    }
+
+    // Get the guild ID
+    const guildId = interaction.guildId;
+    if (!guildId) {
+      await interaction.reply({
+        content: 'This command can only be used in a server.',
+        ephemeral: true
+      });
+      return;
+    }
+
+    // Get the guild
+    const guild = client.guilds.cache.get(guildId);
+    if (!guild) {
+      await interaction.reply({
+        content: 'Failed to find the server.',
+        ephemeral: true
+      });
+      return;
+    }
+
+    try {
+      // Fetch all roles
+      const roles = await guild.roles.fetch();
+
+      // Filter out @everyone role and managed roles (bot roles, integration roles)
+      const selectableRoles = roles.filter(role => 
+        role !== null && 
+        role.name !== '@everyone' &&
+        !role.managed
+      );
+
+      // Sort roles by position (higher position first, as it's more important)
+      const sortedRoles = Array.from(selectableRoles.values()).sort((a, b) => {
+        return b.position - a.position;
+      });
+
+      // Create an embed for the selection interface
+      const embed = new EmbedBuilder()
+        .setColor('#0099ff')
+        .setTitle('Role Cleanup')
+        .setDescription('Select roles to **KEEP** from the dropdown menu. All other roles will be deleted.')
+        .addFields(
+          { name: 'WARNING', value: 'This action cannot be undone! Be careful when selecting roles to keep.' },
+          { name: 'Instructions', value: 'Select multiple roles from the dropdown menu.' }
+        );
+      
+      addBrandedFooter(embed);
+
+      // Create action buttons
+      const selectButton = new ButtonBuilder()
+        .setCustomId('select-complete')
+        .setLabel('Continue')
+        .setStyle(ButtonStyle.Primary);
+      
+      const cancelButton = new ButtonBuilder()
+        .setCustomId('cancel-delete')
+        .setLabel('Cancel')
+        .setStyle(ButtonStyle.Secondary);
+
+      // Create the action row for buttons
+      const buttonRow = new ActionRowBuilder<ButtonBuilder>()
+        .addComponents(cancelButton, selectButton);
+
+      // Send the initial embed
+      const response = await interaction.reply({
+        embeds: [embed],
+        components: [buttonRow],
+        ephemeral: true
+      });
+
+      // Store selected role IDs and pagination variables
+      let selectedRoleIds: string[] = [];
+      let currentPage = 0; // Track the current page for pagination
+      let currentFilter = 'all'; // Default to showing all role types
+      
+      // Create collector for component interactions
+      const collector = response.createMessageComponentCollector({
+        time: 300000 // 5 minutes timeout
+      });
+
+      // Handle interactions
+      collector.on('collect', async (i) => {
+        if (i.isButton()) {
+          if (i.customId === 'cancel-delete') {
+            // Cancel the operation
+            const cancelEmbed = new EmbedBuilder()
+              .setColor('#888888')
+              .setTitle('Operation Cancelled')
+              .setDescription('Role deletion has been cancelled.');
+            
+            addBrandedFooter(cancelEmbed);
+            
+            await i.update({
+              embeds: [cancelEmbed],
+              components: [],
+            });
+            
+            // Stop collector
+            collector.stop();
+          } 
+          else if (i.customId === 'select-complete') {
+            // Show role selection UI with dropdown menu
+            const selectionEmbed = new EmbedBuilder()
+              .setColor('#0099ff')
+              .setTitle('Select roles to keep')
+              .setDescription('Select roles from the dropdown menu that you want to **KEEP**. All other roles will be deleted.');
+              
+            addBrandedFooter(selectionEmbed);
+            
+            // Create select menu options for roles
+            const allSelectOptions = sortedRoles.map(role => {
+              // Ensure role name is not empty (Discord.js validation requires non-empty strings)
+              const roleName = role.name.trim() || `Role (ID: ${role.id})`;
+              return new StringSelectMenuOptionBuilder()
+                .setLabel(roleName)
+                .setDescription(`Position: ${role.position}`)
+                .setValue(role.id)
+                .setEmoji('🏷️');
+            });
+            
+            // Handle pagination for large servers
+            // Discord limits select menus to 25 options, so we need to paginate
+            const pageSize = 25;
+            const totalPages = Math.ceil(allSelectOptions.length / pageSize);
+            const startIdx = currentPage * pageSize;
+            const endIdx = Math.min(startIdx + pageSize, allSelectOptions.length);
+            
+            // Get options for current page
+            const pageOptions = allSelectOptions.slice(startIdx, endIdx);
+            
+            // Create a select menu
+            const selectMenu = new StringSelectMenuBuilder()
+              .setCustomId('select-roles')
+              .setPlaceholder(`Select roles to keep (${startIdx + 1}-${endIdx} of ${allSelectOptions.length})`)
+              .setMinValues(0)
+              .setMaxValues(pageOptions.length)
+              .addOptions(pageOptions);
+            
+            // Selected roles display
+            const selectedRolesEmbed = new EmbedBuilder()
+              .setColor('#00ff00')
+              .setTitle('Currently Selected Roles')
+              .setDescription(
+                selectedRoleIds.length > 0
+                  ? selectedRoleIds
+                      .map(id => {
+                        const role = roles.get(id);
+                        return role 
+                          ? `• 🏷️ ${role.name}` 
+                          : `• Unknown role (${id})`;
+                      })
+                      .join('\n')
+                  : 'No roles selected yet. Select roles to keep from the dropdown menu.'
+              );
+            
+            // Create navigation buttons for pagination
+            const navigationRow = new ActionRowBuilder<ButtonBuilder>()
+              .addComponents(
+                new ButtonBuilder()
+                  .setCustomId('prev-page')
+                  .setLabel('Previous Page')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('⬅️')
+                  .setDisabled(currentPage === 0), // Disabled on first page
+                new ButtonBuilder()
+                  .setCustomId('next-page')
+                  .setLabel('Next Page')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('➡️')
+                  .setDisabled(currentPage === totalPages - 1 || totalPages === 0)
+              );
+            
+            // Create action buttons
+            const buttonRow = new ActionRowBuilder<ButtonBuilder>()
+              .addComponents(
+                new ButtonBuilder()
+                  .setCustomId('back-button')
+                  .setLabel('Back')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('🔙'),
+                new ButtonBuilder()
+                  .setCustomId('confirm-selection')
+                  .setLabel('Confirm Selection')
+                  .setStyle(ButtonStyle.Primary)
+              );
+            
+            // Create type filter menu
+            const typeFilterMenu = new StringSelectMenuBuilder()
+              .setCustomId('filter-type')
+              .setPlaceholder('Filter by role priority')
+              .addOptions([
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('All Roles')
+                  .setValue('all')
+                  .setDescription('Show all roles')
+                  .setDefault(currentFilter === 'all'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('High Priority Roles')
+                  .setValue('high')
+                  .setEmoji('🔝')
+                  .setDescription('Show only high priority roles (position > 15)')
+                  .setDefault(currentFilter === 'high'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Medium Priority Roles')
+                  .setValue('medium')
+                  .setEmoji('⏺️')
+                  .setDescription('Show only medium priority roles (position 5-15)')
+                  .setDefault(currentFilter === 'medium'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Low Priority Roles')
+                  .setValue('low')
+                  .setEmoji('⏬')
+                  .setDescription('Show only low priority roles (position < 5)')
+                  .setDefault(currentFilter === 'low'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Displayed Separately')
+                  .setValue('hoisted')
+                  .setEmoji('📌')
+                  .setDescription('Show only roles displayed separately in member list')
+                  .setDefault(currentFilter === 'hoisted'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Colored Roles')
+                  .setValue('color')
+                  .setEmoji('🎨')
+                  .setDescription('Show only roles with custom colors')
+                  .setDefault(currentFilter === 'color')
+              ]);
+            
+            // Create filter row
+            const typeFilterRow = new ActionRowBuilder<StringSelectMenuBuilder>()
+              .addComponents(typeFilterMenu);
+              
+            // Create select row
+            const selectRow = new ActionRowBuilder<StringSelectMenuBuilder>()
+              .addComponents(selectMenu);
+            
+            // Update the message with role selection UI and add pagination if needed
+            const components = allSelectOptions.length > 25 
+                ? [typeFilterRow, selectRow, navigationRow, buttonRow] 
+                : [typeFilterRow, selectRow, buttonRow];
+                
+            await i.update({
+              embeds: [selectionEmbed, selectedRolesEmbed],
+              components: components,
+            });
+          }
+          else if (i.customId === 'back-button') {
+            // Go back to main menu
+            await i.update({
+              embeds: [embed],
+              components: [buttonRow],
+            });
+          }
+          else if (i.customId === 'confirm-selection') {
+            // Show confirmation dialog
+            const confirmationEmbed = new EmbedBuilder()
+              .setColor('#ff0000')
+              .setTitle('⚠️ Final Confirmation Required ⚠️')
+              .setDescription(`Are you absolutely sure you want to delete all roles except the ${selectedRoleIds.length} selected ones?`)
+              .addFields(
+                { 
+                  name: 'Roles to Keep', 
+                  value: selectedRoleIds.map(id => {
+                    const role = roles.get(id);
+                    return role ? `• 🏷️ ${role.name}` : `• Unknown role (${id})`;
+                  }).join('\n') || 'None selected - all roles will be deleted!'
+                },
+                {
+                  name: 'Roles to Delete',
+                  value: Array.from(roles.values())
+                    .filter(role => 
+                      role && 
+                      !selectedRoleIds.includes(role.id) && 
+                      role.name !== '@everyone' && 
+                      !role.managed
+                    )
+                    .slice(0, 15) // Show only first 15 to prevent message being too long
+                    .map(role => `• 🏷️ ${role.name}`)
+                    .join('\n') + (roles.size - selectedRoleIds.length - 1 > 15 ? '\n• ... and more' : '') // -1 for @everyone
+                }
+              );
+              
+              addBrandedFooter(confirmationEmbed);
+            
+            // Create final confirmation buttons
+            const finalConfirmButton = new ButtonBuilder()
+              .setCustomId('final-confirm')
+              .setLabel('Yes, Delete Roles')
+              .setStyle(ButtonStyle.Danger);
+            
+            const finalCancelButton = new ButtonBuilder()
+              .setCustomId('final-cancel')
+              .setLabel('No, Cancel')
+              .setStyle(ButtonStyle.Secondary);
+            
+            const finalButtonRow = new ActionRowBuilder<ButtonBuilder>()
+              .addComponents(finalCancelButton, finalConfirmButton);
+            
+            await i.update({
+              embeds: [confirmationEmbed],
+              components: [finalButtonRow],
+            });
+          }
+          else if (i.customId === 'final-confirm') {
+            // Execute the deletion
+            await i.update({
+              embeds: [
+                (() => {
+                  const processingEmbed = new EmbedBuilder()
+                    .setColor('#ffa500')
+                    .setTitle('Processing')
+                    .setDescription('Deleting roles... Please wait.');
+                  return addBrandedFooter(processingEmbed);
+                })()
+              ],
+              components: [],
+            });
+            
+            try {
+              // Call the deleteRoles function
+              const result = await deleteRoles(guildId, selectedRoleIds);
+              
+              // Show results
+              const resultEmbed = new EmbedBuilder()
+                .setColor(result.success ? '#00ff00' : '#ff0000')
+                .setTitle(result.success ? 'Operation Completed' : 'Operation Failed')
+                .setDescription(
+                  result.success
+                    ? `Successfully deleted ${result.deletedCount} roles. Failed to delete ${result.failedCount} roles.`
+                    : `Failed to delete roles: ${result.error}`
+                );
+                
+              addBrandedFooter(resultEmbed);
+              
+              await i.editReply({
+                embeds: [resultEmbed],
+                components: [],
+              });
+            } catch (error) {
+              // Handle errors
+              const errorEmbed = new EmbedBuilder()
+                .setColor('#ff0000')
+                .setTitle('Error')
+                .setDescription(`An error occurred: ${(error as Error).message}`);
+                
+              addBrandedFooter(errorEmbed);
+              
+              await i.editReply({
+                embeds: [errorEmbed],
+                components: [],
+              });
+            }
+          }
+          else if (i.customId === 'final-cancel') {
+            // Cancel the deletion
+            const cancelEmbed = new EmbedBuilder()
+              .setColor('#888888')
+              .setTitle('Operation Cancelled')
+              .setDescription('Role deletion has been cancelled.');
+            
+            addBrandedFooter(cancelEmbed);
+            
+            await i.update({
+              embeds: [cancelEmbed],
+              components: [],
+            });
+            
+            // Stop collector
+            collector.stop();
+          }
+          else if (i.customId === 'next-page' || i.customId === 'prev-page') {
+            // Handle pagination for role selection
+            if (i.customId === 'next-page') {
+              currentPage++;
+            } else if (i.customId === 'prev-page') {
+              currentPage--;
+            }
+            
+            // Create all select menu options
+            const allSelectOptions = sortedRoles.map(role => {
+              // Ensure role name is not empty (Discord.js validation requires non-empty strings)
+              const roleName = role.name.trim() || `Role (ID: ${role.id})`;
+              return new StringSelectMenuOptionBuilder()
+                .setLabel(roleName)
+                .setDescription(`Position: ${role.position}`)
+                .setValue(role.id)
+                .setEmoji('🏷️');
+            });
+            
+            // Calculate page info
+            const pageSize = 25;
+            const totalPages = Math.ceil(allSelectOptions.length / pageSize);
+            const startIdx = currentPage * pageSize;
+            const endIdx = Math.min(startIdx + pageSize, allSelectOptions.length);
+            
+            // Get options for current page
+            const pageOptions = allSelectOptions.slice(startIdx, endIdx);
+            
+            // Create a select menu with current page options
+            const selectMenu = new StringSelectMenuBuilder()
+              .setCustomId('select-roles')
+              .setPlaceholder(`Select roles to keep (${startIdx + 1}-${endIdx} of ${allSelectOptions.length}, ${selectedRoleIds.length} selected)`)
+              .setMinValues(0)
+              .setMaxValues(pageOptions.length)
+              .addOptions(pageOptions);
+            
+            // Create navigation buttons with appropriate disabled state
+            const navigationRow = new ActionRowBuilder<ButtonBuilder>()
+              .addComponents(
+                new ButtonBuilder()
+                  .setCustomId('prev-page')
+                  .setLabel('Previous Page')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('⬅️')
+                  .setDisabled(currentPage === 0),
+                new ButtonBuilder()
+                  .setCustomId('next-page')
+                  .setLabel('Next Page')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('➡️')
+                  .setDisabled(currentPage === totalPages - 1 || totalPages === 0)
+              );
+            
+            // Create select row
+            const selectRow = new ActionRowBuilder<StringSelectMenuBuilder>()
+              .addComponents(selectMenu);
+            
+            // Create action buttons
+            const buttonRow = new ActionRowBuilder<ButtonBuilder>()
+              .addComponents(
+                new ButtonBuilder()
+                  .setCustomId('back-button')
+                  .setLabel('Back')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('🔙'),
+                new ButtonBuilder()
+                  .setCustomId('confirm-selection')
+                  .setLabel('Confirm Selection')
+                  .setStyle(ButtonStyle.Primary)
+              );
+            
+            // Update selected roles display
+            const selectedRolesEmbed = new EmbedBuilder()
+              .setColor('#00ff00')
+              .setTitle('Currently Selected Roles')
+              .setDescription(
+                selectedRoleIds.length > 0
+                  ? selectedRoleIds
+                      .map(id => {
+                        const role = roles.get(id);
+                        return role 
+                          ? `• 🏷️ ${role.name}` 
+                          : `• Unknown role (${id})`;
+                      })
+                      .join('\n')
+                  : 'No roles selected yet. Select roles to keep from the dropdown menu.'
+              );
+            
+            // Get the main embed from existing message
+            const mainEmbed = i.message.embeds[0];
+            
+            // Create embeds
+            const updatedEmbeds = [
+              new EmbedBuilder()
+                .setColor(mainEmbed.color || '#0099ff')
+                .setTitle(mainEmbed.title || 'Select roles to keep')
+                .setDescription(mainEmbed.description || 'Select roles from the dropdown menu that you want to KEEP. All other roles will be deleted.'),
+              selectedRolesEmbed
+            ];
+            
+            // Add branded footer
+            addBrandedFooter(updatedEmbeds[0]);
+            
+            // Get the type filter menu
+            const typeFilterMenu = new StringSelectMenuBuilder()
+              .setCustomId('filter-type')
+              .setPlaceholder('Filter by role priority')
+              .addOptions([
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('All Roles')
+                  .setValue('all')
+                  .setDescription('Show all roles')
+                  .setDefault(currentFilter === 'all'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('High Priority Roles')
+                  .setValue('high')
+                  .setEmoji('🔝')
+                  .setDescription('Show only high priority roles (position > 15)')
+                  .setDefault(currentFilter === 'high'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Medium Priority Roles')
+                  .setValue('medium')
+                  .setEmoji('⏺️')
+                  .setDescription('Show only medium priority roles (position 5-15)')
+                  .setDefault(currentFilter === 'medium'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Low Priority Roles')
+                  .setValue('low')
+                  .setEmoji('⏬')
+                  .setDescription('Show only low priority roles (position < 5)')
+                  .setDefault(currentFilter === 'low'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Displayed Separately')
+                  .setValue('hoisted')
+                  .setEmoji('📌')
+                  .setDescription('Show only roles displayed separately in member list')
+                  .setDefault(currentFilter === 'hoisted'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Colored Roles')
+                  .setValue('color')
+                  .setEmoji('🎨')
+                  .setDescription('Show only roles with custom colors')
+                  .setDefault(currentFilter === 'color')
+              ]);
+            
+            const typeFilterRow = new ActionRowBuilder<StringSelectMenuBuilder>()
+              .addComponents(typeFilterMenu);
+            
+            // Update the UI with new page
+            await i.update({
+              embeds: updatedEmbeds,
+              components: [typeFilterRow, selectRow, navigationRow, buttonRow],
+            });
+          }
+        }
+        else if (i.isStringSelectMenu()) {
+          if (i.customId === 'select-roles') {
+            // Update selected roles
+            selectedRoleIds = i.values;
+            
+            // Get current embeds and components
+            const currentComponents = Array.from(i.message.components);
+            
+            // Update the selected roles embed
+            const selectedRolesEmbed = new EmbedBuilder()
+              .setColor('#00ff00')
+              .setTitle('Currently Selected Roles')
+              .setDescription(
+                selectedRoleIds.length > 0
+                  ? selectedRoleIds
+                      .map(id => {
+                        const role = roles.get(id);
+                        return role 
+                          ? `• 🏷️ ${role.name}` 
+                          : `• Unknown role (${id})`;
+                      })
+                      .join('\n')
+                  : 'No roles selected yet. Select roles to keep from the dropdown menu.'
+              );
+            
+            // Keep main embed, update selected roles embed
+            await i.update({
+              embeds: [i.message.embeds[0], selectedRolesEmbed],
+              components: currentComponents,
+            });
+          }
+          else if (i.customId === 'filter-type') {
+            // Handle role filtering
+            currentFilter = i.values[0];
+            currentPage = 0; // Reset page when changing filter
+            
+            // Get the filtered roles
+            const filteredRoles = sortedRoles.filter(role => {
+              if (currentFilter === 'all') return true;
+              if (currentFilter === 'high' && role.position > 15) return true;
+              if (currentFilter === 'medium' && role.position >= 5 && role.position <= 15) return true;
+              if (currentFilter === 'low' && role.position < 5) return true;
+              if (currentFilter === 'hoisted' && role.hoist) return true;
+              if (currentFilter === 'color' && role.color !== 0) return true;
+              return false;
+            });
+            
+            // Create options for the filtered roles
+            const filteredOptions = filteredRoles.map(role => {
+              // Ensure role name is not empty (Discord.js validation requires non-empty strings)
+              const roleName = role.name.trim() || `Role (ID: ${role.id})`;
+              return new StringSelectMenuOptionBuilder()
+                .setLabel(roleName)
+                .setDescription(`Position: ${role.position}`)
+                .setValue(role.id)
+                .setEmoji('🏷️');
+            });
+            
+            // Calculate page bounds
+            const pageSize = 25;
+            const totalPages = Math.ceil(filteredOptions.length / pageSize);
+            const startIdx = currentPage * pageSize;
+            const endIdx = Math.min(startIdx + pageSize, filteredOptions.length);
+            
+            // Get options for current page
+            const pageOptions = filteredOptions.slice(startIdx, endIdx);
+            
+            // Create type filter menu
+            const typeFilterMenu = new StringSelectMenuBuilder()
+              .setCustomId('filter-type')
+              .setPlaceholder('Filter by role priority')
+              .addOptions([
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('All Roles')
+                  .setValue('all')
+                  .setDescription('Show all roles')
+                  .setDefault(currentFilter === 'all'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('High Priority Roles')
+                  .setValue('high')
+                  .setEmoji('🔝')
+                  .setDescription('Show only high priority roles (position > 15)')
+                  .setDefault(currentFilter === 'high'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Medium Priority Roles')
+                  .setValue('medium')
+                  .setEmoji('⏺️')
+                  .setDescription('Show only medium priority roles (position 5-15)')
+                  .setDefault(currentFilter === 'medium'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Low Priority Roles')
+                  .setValue('low')
+                  .setEmoji('⏬')
+                  .setDescription('Show only low priority roles (position < 5)')
+                  .setDefault(currentFilter === 'low'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Displayed Separately')
+                  .setValue('hoisted')
+                  .setEmoji('📌')
+                  .setDescription('Show only roles displayed separately in member list')
+                  .setDefault(currentFilter === 'hoisted'),
+                new StringSelectMenuOptionBuilder()
+                  .setLabel('Colored Roles')
+                  .setValue('color')
+                  .setEmoji('🎨')
+                  .setDescription('Show only roles with custom colors')
+                  .setDefault(currentFilter === 'color')
+              ]);
+            
+            // Create channel selection menu
+            let selectMenu = new StringSelectMenuBuilder()
+              .setCustomId('select-roles')
+              .setPlaceholder(`Select roles (${startIdx + 1}-${endIdx} of ${filteredOptions.length}, ${selectedRoleIds.length} selected)`)
+              .setMinValues(0)
+              .setMaxValues(pageOptions.length);
+              
+            // Add options to the select menu
+            if (pageOptions.length > 0) {
+              selectMenu.addOptions(pageOptions);
+            } else {
+              // If no roles of this type, show a placeholder and disable the menu
+              selectMenu
+                .addOptions([
+                  new StringSelectMenuOptionBuilder()
+                    .setLabel('No roles of this type')
+                    .setValue('none')
+                    .setDescription('Try a different filter')
+                ])
+                .setDisabled(true);
+            }
+              
+            const typeFilterRow = new ActionRowBuilder<StringSelectMenuBuilder>()
+              .addComponents(typeFilterMenu);
+              
+            const selectRow = new ActionRowBuilder<StringSelectMenuBuilder>()
+              .addComponents(selectMenu);
+              
+            // Create navigation buttons
+            const navigationRow = new ActionRowBuilder<ButtonBuilder>()
+              .addComponents(
+                new ButtonBuilder()
+                  .setCustomId('prev-page')
+                  .setLabel('Previous Page')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('⬅️')
+                  .setDisabled(currentPage === 0),
+                new ButtonBuilder()
+                  .setCustomId('next-page')
+                  .setLabel('Next Page')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('➡️')
+                  .setDisabled(currentPage === totalPages - 1 || totalPages === 0)
+              );
+              
+            // Create action buttons
+            const buttonRow = new ActionRowBuilder<ButtonBuilder>()
+              .addComponents(
+                new ButtonBuilder()
+                  .setCustomId('back-button')
+                  .setLabel('Back')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('🔙'),
+                new ButtonBuilder()
+                  .setCustomId('confirm-selection')
+                  .setLabel('Confirm Selection')
+                  .setStyle(ButtonStyle.Primary)
+              );
+              
+            // Update selected roles display
+            const selectedRolesEmbed = new EmbedBuilder()
+              .setColor('#00ff00')
+              .setTitle('Currently Selected Roles')
+              .setDescription(
+                selectedRoleIds.length > 0
+                  ? selectedRoleIds
+                      .map(id => {
+                        const role = roles.get(id);
+                        return role 
+                          ? `• 🏷️ ${role.name}` 
+                          : `• Unknown role (${id})`;
+                      })
+                      .join('\n')
+                  : 'No roles selected yet. Select roles to keep from the dropdown menu.'
+              );
+            
+            // Create UI embeds
+            const updatedEmbeds = [
+              new EmbedBuilder()
+                .setColor('#0099ff')
+                .setTitle('Select roles to keep')
+                .setDescription(`Filter: ${getFilterName(currentFilter)}. Select roles you want to **KEEP**. All other roles will be deleted.`),
+              selectedRolesEmbed
+            ];
+            
+            // Add branded footer
+            addBrandedFooter(updatedEmbeds[0]);
+            
+            // Only show navigation if we have multiple pages
+            const components = filteredOptions.length > pageSize
+              ? [typeFilterRow, selectRow, navigationRow, buttonRow]
+              : [typeFilterRow, selectRow, buttonRow];
+            
+            // Update the UI with filtered roles
+            await i.update({
+              embeds: updatedEmbeds,
+              components: components,
+            });
+          }
+        }
+      });
+      
+      // Handle collector end event
+      collector.on('end', async (collected, reason) => {
+        if (reason === 'time') {
+          // If collector ends due to timeout
+          const timeoutEmbed = new EmbedBuilder()
+            .setColor('#888888')
+            .setTitle('Operation Timed Out')
+            .setDescription('Role deletion has been cancelled due to inactivity.');
+          
+          addBrandedFooter(timeoutEmbed);
+          
+          try {
+            await interaction.editReply({
+              embeds: [timeoutEmbed],
+              components: [],
+            });
+          } catch (error) {
+            // Silently fail if we can't update the message
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error in delete-roles command:', error);
+      
+      await interaction.reply({
+        content: `An error occurred: ${(error as Error).message}`,
+        ephemeral: true
+      });
+    }
+  }
+};
+
+// Define the clear-messages slash command
+export const clearMessagesCommand = {
+  data: new SlashCommandBuilder()
+    .setName('clear')
+    .setDescription('Delete multiple messages from a channel at once')
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
+    .addIntegerOption(option => 
+      option
+        .setName('amount')
+        .setDescription('Number of messages to delete (max 100)')
+        .setRequired(true)
+        .setMinValue(1)
+        .setMaxValue(100)
+    )
+    .addStringOption(option =>
+      option
+        .setName('type')
+        .setDescription('Type of messages to delete')
+        .setRequired(false)
+        .addChoices(
+          { name: 'All Messages', value: 'all' },
+          { name: 'User Messages Only', value: 'user' },
+          { name: 'Bot Messages Only', value: 'bot' },
+          { name: 'Except System Messages', value: 'non-system' }
+        )
+    )
+    .addUserOption(option =>
+      option
+        .setName('from')
+        .setDescription('Delete messages only from this user')
+        .setRequired(false)
+    )
+    .addBooleanOption(option =>
+      option
+        .setName('include_pinned')
+        .setDescription('Include pinned messages in deletion')
+        .setRequired(false)
+    ),
+  async execute(interaction: CommandInteraction, client: Client) {
+    // Check if the user has ManageMessages permission
+    if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageMessages)) {
+      await interaction.reply({
+        content: 'You do not have permission to use this command. Manage Messages permission is required.',
+        ephemeral: true
+      });
+      return;
+    }
+
+    // Get the guild ID
+    const guildId = interaction.guildId;
+    if (!guildId) {
+      await interaction.reply({
+        content: 'This command can only be used in a server.',
+        ephemeral: true
+      });
+      return;
+    }
+
+    // Get the channel ID
+    const channelId = interaction.channelId;
+    if (!channelId) {
+      await interaction.reply({
+        content: 'Failed to determine the channel.',
+        ephemeral: true
+      });
+      return;
+    }
+
+    try {
+      // Get the options
+      const options = interaction as ChatInputCommandInteraction;
+      const amount = options.options.getInteger('amount', true);
+      const messageType = options.options.getString('type') as 'all' | 'user' | 'bot' | 'non-system' || 'all';
+      const userOption = options.options.getUser('from');
+      const userId = userOption?.id;
+      const includePinned = options.options.getBoolean('include_pinned') ?? false;
+      
+      // Construct confirmation message based on filters
+      let confirmationMessage = `Processing... Deleting ${amount} messages`;
+      
+      if (messageType && messageType !== 'all') {
+        if (messageType === 'bot') {
+          confirmationMessage += ` (bot messages only)`;
+        } else if (messageType === 'user') {
+          confirmationMessage += ` (user messages only)`;
+        } else if (messageType === 'non-system') {
+          confirmationMessage += ` (excluding system messages)`;
+        }
+      }
+      
+      if (userId) {
+        confirmationMessage += ` from user ${userOption?.tag || userId}`;
+      }
+      
+      if (!includePinned) {
+        confirmationMessage += ` (excluding pinned messages)`;
+      }
+      
+      confirmationMessage += '.';
+      
+      // Show processing message
+      await interaction.reply({
+        content: confirmationMessage,
+        ephemeral: true
+      });
+      
+      // Call the deleteMessages function with filters
+      const result = await deleteMessages(
+        guildId, 
+        channelId, 
+        amount, 
+        messageType, 
+        userId,
+        undefined,
+        undefined,
+        includePinned
+      );
+      
+      // Build result message with filter details
+      let resultMessage = result.success 
+        ? `Successfully deleted ${result.deletedCount} messages` 
+        : `Failed to delete messages: ${result.error}`;
+        
+      if (messageType && messageType !== 'all') {
+        if (messageType === 'bot') {
+          resultMessage += ` (bot messages only)`;
+        } else if (messageType === 'user') {
+          resultMessage += ` (user messages only)`;
+        } else if (messageType === 'non-system') {
+          resultMessage += ` (excluding system messages)`;
+        }
+      }
+      
+      if (userId) {
+        resultMessage += ` from user ${userOption?.tag || userId}`;
+      }
+      
+      if (!includePinned) {
+        resultMessage += ` (pinned messages were preserved)`;
+      }
+      
+      if (result.success) {
+        await interaction.editReply({
+          content: resultMessage + '.',
+        });
+      } else {
+        await interaction.editReply({
+          content: resultMessage,
+        });
+      }
+    } catch (error) {
+      console.error('Error in clear-messages command:', error);
+      
+      // If we already replied, edit. Otherwise, reply.
+      if (interaction.replied) {
+        await interaction.editReply({
+          content: `An error occurred: ${(error as Error).message}`,
+        });
+      } else {
+        await interaction.reply({
+          content: `An error occurred: ${(error as Error).message}`,
+          ephemeral: true
+        });
+      }
+    }
+  }
+};
 
 // Helper function to add branded footer to embeds
 function addBrandedFooter(embed: EmbedBuilder): EmbedBuilder {
@@ -876,7 +1834,11 @@ function addBrandedFooter(embed: EmbedBuilder): EmbedBuilder {
 
 // Register slash commands with Discord
 export async function registerCommands(client: Client, token: string) {
-  const commands = [deleteChannelsCommand.data.toJSON()];
+  const commands = [
+    deleteChannelsCommand.data.toJSON(),
+    deleteRolesCommand.data.toJSON(),
+    clearMessagesCommand.data.toJSON()
+  ];
   
   const rest = new REST({ version: '9' }).setToken(token);
   
