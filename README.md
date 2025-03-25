@@ -44,10 +44,11 @@
 ## 📸 Screenshots
 
 <div align="center">
-  <img src="https://knarlix.github.io/discord-channel-deleter-bot/images/cmd_testing.gif" width="45%" alt="clear cmd gif">
+ 
   <img src="https://knarlix.github.io/discord-channel-deleter-bot/images/channeldltstep4.png" width="45%" alt="channel delete">
   <br><br>
   <img src="https://knarlix.github.io/discord-channel-deleter-bot/images/Rolesdltstep5.png" width="45%" alt="Role delete">
+   <img src="https://knarlix.github.io/discord-channel-deleter-bot/images/cmd_testing.gif" width="45%" alt="clear cmd gif">
 </div>
 
 ## 🛠️ Technology Stack
