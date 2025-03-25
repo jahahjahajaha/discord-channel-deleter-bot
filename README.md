@@ -44,11 +44,10 @@
 ## 📸 Screenshots
 
 <div align="center">
-  <img src="attached_assets/Screenshot_20250321-131930.png" width="45%" alt="Channel Filter Selection">
-  <img src="attached_assets/Screenshot_20250321-131946.png" width="45%" alt="Channel Selection">
+  <img src="https://knarlix.github.io/discord-channel-deleter-bot/images/cmd_testing.gif" width="45%" alt="clear cmd gif">
+  <img src="https://knarlix.github.io/discord-channel-deleter-bot/images/channeldltstep4.png" width="45%" alt="channel delete">
   <br><br>
-  <img src="attached_assets/Screenshot_20250321-132022.png" width="45%" alt="Confirmation Screen">
-  <img src="attached_assets/Screenshot_20250321-132035.png" width="45%" alt="Deletion Progress">
+  <img src="https://knarlix.github.io/discord-channel-deleter-bot/images/Rolesdltstep5.png" width="45%" alt="Role delete">
 </div>
 
 ## 🛠️ Technology Stack
@@ -150,52 +149,6 @@ To keep your bot running 24/7 on free hosting platforms like Replit, follow thes
    - UptimeRobot will ping your bot at regular intervals, preventing it from going into sleep mode
 
 This setup ensures your bot remains online even when using free hosting services that normally sleep after periods of inactivity.
-
-## 🌐 Website
-
-A companion website for the bot is available in the root directory. You can host it on GitHub Pages:
-
-1. Fork this repository
-2. Go to repository Settings → Pages
-3. Set the source to "main" branch and folder to "/"
-4. Your website will be available at `https://yourusername.github.io/discord-channel-deleter-bot`
-
-The website provides detailed information about the bot, usage instructions, and setup guides.
-
-## 📂 GitHub Repository Setup
-
-To push your code to GitHub:
-
-1. **Create a GitHub Repository**:
-   - Go to [GitHub](https://github.com) and log in
-   - Click "New repository" and name it `discord-channel-deleter-bot`
-   - Keep it public or private based on your preference
-   - Do not initialize with README, .gitignore, or license (we already have these)
-
-2. **Initialize Git and Push (First Time)**:
-   ```bash
-   # Make sure you're in the project directory
-   git init
-   git add .
-   git commit -m "Initial commit: Discord Channel Deleter Bot"
-   git branch -M main
-   git remote add origin https://github.com/yourusername/discord-channel-deleter-bot.git
-   git push -u origin main
-   ```
-
-3. **For Subsequent Updates**:
-   ```bash
-   git add .
-   git commit -m "Your update message here"
-   git push
-   ```
-
-4. **Files to Exclude**:
-   - The `.gitignore` file already excludes:
-     - `node_modules/`
-     - `.env` (contains your bot token)
-     - Various cache and log files
-   - Never commit your Discord bot token to GitHub!
 
 ## 🙋 FAQ
 
