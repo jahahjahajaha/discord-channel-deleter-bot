@@ -810,10 +810,26 @@ export const deleteChannelsCommand = {
         }
       });
     } catch (error) {
-      await interaction.reply({
-        content: `An error occurred: ${(error as Error).message}`,
-        ephemeral: true
-      });
+      console.error('Error in delete-channels command:', error);
+      
+      try {
+        // Check if we can reply to the interaction
+        if (!interaction.replied && !interaction.deferred) {
+          await interaction.reply({
+            content: `An error occurred: ${(error as Error).message}`,
+            ephemeral: true
+          });
+        } else {
+          // If we already replied, try to follow up
+          await interaction.followUp({
+            content: `An error occurred: ${(error as Error).message}`,
+            ephemeral: true
+          });
+        }
+      } catch (followUpError) {
+        // If we can't reply or follow up, just log the error
+        console.error('Failed to send error message:', followUpError);
+      }
     }
   }
 };
@@ -1415,8 +1431,21 @@ export const deleteRolesCommand = {
         }
         else if (i.isStringSelectMenu()) {
           if (i.customId === 'select-roles') {
-            // Update selected roles
-            selectedRoleIds = i.values;
+            // Update selected roles - merge with previous selections instead of replacing
+            // Create a Set to avoid duplicates
+            const roleIdsSet = new Set([...selectedRoleIds]);
+            
+            // Add new selections if not already selected, or remove if already selected
+            i.values.forEach(id => {
+              if (roleIdsSet.has(id)) {
+                roleIdsSet.delete(id); // Unselect if already selected
+              } else {
+                roleIdsSet.add(id); // Select if not already selected
+              }
+            });
+            
+            // Update the selectedRoleIds array
+            selectedRoleIds = Array.from(roleIdsSet);
             
             // Get current embeds and components
             const currentComponents = Array.from(i.message.components);
@@ -1648,10 +1677,24 @@ export const deleteRolesCommand = {
     } catch (error) {
       console.error('Error in delete-roles command:', error);
       
-      await interaction.reply({
-        content: `An error occurred: ${(error as Error).message}`,
-        ephemeral: true
-      });
+      try {
+        // Check if we can reply to the interaction
+        if (!interaction.replied && !interaction.deferred) {
+          await interaction.reply({
+            content: `An error occurred: ${(error as Error).message}`,
+            ephemeral: true
+          });
+        } else {
+          // If we already replied, try to follow up
+          await interaction.followUp({
+            content: `An error occurred: ${(error as Error).message}`,
+            ephemeral: true
+          });
+        }
+      } catch (followUpError) {
+        // If we can't reply or follow up, just log the error
+        console.error('Failed to send error message:', followUpError);
+      }
     }
   }
 };
@@ -1809,16 +1852,29 @@ export const clearMessagesCommand = {
     } catch (error) {
       console.error('Error in clear-messages command:', error);
       
-      // If we already replied, edit. Otherwise, reply.
-      if (interaction.replied) {
-        await interaction.editReply({
-          content: `An error occurred: ${(error as Error).message}`,
-        });
-      } else {
-        await interaction.reply({
-          content: `An error occurred: ${(error as Error).message}`,
-          ephemeral: true
-        });
+      try {
+        // Handle the error with better error handling
+        if (interaction.replied) {
+          // Try to edit our earlier reply
+          await interaction.editReply({
+            content: `An error occurred: ${(error as Error).message}`,
+          });
+        } else if (!interaction.replied && !interaction.deferred) {
+          // Try to send a new reply
+          await interaction.reply({
+            content: `An error occurred: ${(error as Error).message}`,
+            ephemeral: true
+          });
+        } else {
+          // Try to follow up if we can't reply or edit
+          await interaction.followUp({
+            content: `An error occurred: ${(error as Error).message}`,
+            ephemeral: true
+          });
+        }
+      } catch (followUpError) {
+        // If we can't communicate with the interaction at all, just log it
+        console.error('Failed to send error message:', followUpError);
       }
     }
   }
