@@ -13,13 +13,13 @@
   [![License](https://img.shields.io/badge/license-MIT-22c55e.svg?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](LICENSE)
   
   <br>
-  <img src="attached_assets/Screenshot_20250321-131946.png" width="80%" alt="Bot Interface">
+  <img src="https://knarlix.github.io/discord-channel-deleter-bot/images/bot-preview.png" width="80%" alt="Bot Interface">
   <br><br>
   <p>
     <b>Designed & Developed by</b>
     <br>
     <a href="https://github.com/KnarliX">
-      <img src="https://raw.githubusercontent.com/KnarliX/My-pfp/refs/heads/main/pfp.png" width="100" style="border-radius:50%" alt="KnarliX">
+      <img src="https://knarlix.github.io/images/pfp.png" width="100" style="border-radius:50%" alt="KnarliX">
     </a>
     <br>
     <b>KnarliX</b>
