@@ -1415,8 +1415,21 @@ export const deleteRolesCommand = {
         }
         else if (i.isStringSelectMenu()) {
           if (i.customId === 'select-roles') {
-            // Update selected roles
-            selectedRoleIds = i.values;
+            // Update selected roles - merge with previous selections instead of replacing
+            // Create a Set to avoid duplicates
+            const roleIdsSet = new Set([...selectedRoleIds]);
+            
+            // Add new selections if not already selected, or remove if already selected
+            i.values.forEach(id => {
+              if (roleIdsSet.has(id)) {
+                roleIdsSet.delete(id); // Unselect if already selected
+              } else {
+                roleIdsSet.add(id); // Select if not already selected
+              }
+            });
+            
+            // Update the selectedRoleIds array
+            selectedRoleIds = Array.from(roleIdsSet);
             
             // Get current embeds and components
             const currentComponents = Array.from(i.message.components);
